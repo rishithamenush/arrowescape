@@ -75,10 +75,8 @@ class HomeScreen extends StatelessWidget {
                       style: const TextStyle(color: AppColors.textSecondary),
                     ),
                     const Spacer(),
-                    PrimaryButton(
-                      label: 'PLAY',
-                      icon: Icons.play_arrow_rounded,
-                      expand: true,
+                    _PlayButton(
+                      level: p.currentLevel,
                       onTap: () =>
                           _push(context, GameScreen(levelId: p.currentLevel)),
                     ),
@@ -89,6 +87,7 @@ class HomeScreen extends StatelessWidget {
                           child: _MenuCard(
                             icon: Icons.grid_view_rounded,
                             label: 'Levels',
+                            subtitle: 'All worlds',
                             color: AppColors.primary,
                             onTap: () =>
                                 _push(context, const LevelSelectScreen()),
@@ -99,6 +98,7 @@ class HomeScreen extends StatelessWidget {
                           child: _MenuCard(
                             icon: Icons.calendar_today_rounded,
                             label: 'Daily',
+                            subtitle: 'New puzzle',
                             color: AppColors.success,
                             onTap: () =>
                                 _push(context, const DailyChallengeScreen()),
@@ -110,6 +110,7 @@ class HomeScreen extends StatelessWidget {
                     _MenuCard(
                       icon: Icons.shopping_bag_rounded,
                       label: 'Shop',
+                      subtitle: 'Skins & boosters',
                       color: AppColors.secondary,
                       wide: true,
                       onTap: () => _push(context, const ShopScreen()),
@@ -130,10 +131,80 @@ class HomeScreen extends StatelessWidget {
   }
 }
 
+/// Big hero "PLAY" button with an icon disc and the current level.
+class _PlayButton extends StatelessWidget {
+  const _PlayButton({required this.level, required this.onTap});
+
+  final int level;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GameButton(
+      color: AppColors.success,
+      onTap: onTap,
+      expand: true,
+      depth: 9,
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.lg,
+        vertical: AppSpacing.md,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 50,
+            height: 50,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.24),
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white.withValues(alpha: 0.4)),
+            ),
+            child: const Icon(
+              Icons.play_arrow_rounded,
+              color: Colors.white,
+              size: 32,
+            ),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'PLAY',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1,
+                  height: 1,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                'Level $level',
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.9),
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// A premium menu tile: glossy icon badge, title, subtitle and (when [wide]) a
+/// chevron. Vertical for the square tiles, horizontal for the wide one.
 class _MenuCard extends StatelessWidget {
   const _MenuCard({
     required this.icon,
     required this.label,
+    required this.subtitle,
     required this.color,
     required this.onTap,
     this.wide = false,
@@ -141,6 +212,7 @@ class _MenuCard extends StatelessWidget {
 
   final IconData icon;
   final String label;
+  final String subtitle;
   final Color color;
   final VoidCallback onTap;
   final bool wide;
@@ -150,43 +222,77 @@ class _MenuCard extends StatelessWidget {
     return GameButton(
       color: color,
       onTap: onTap,
-      depth: 6,
-      padding: const EdgeInsets.symmetric(
-        vertical: AppSpacing.lg,
-        horizontal: AppSpacing.md,
-      ),
+      depth: 7,
+      padding: const EdgeInsets.all(AppSpacing.lg),
       child: wide
           ? Row(
-              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _iconBadge(icon),
+                _iconBadge(),
                 const SizedBox(width: AppSpacing.md),
-                Text(label, style: _labelStyle),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [_title(), _subtitle()],
+                  ),
+                ),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  color: Colors.white.withValues(alpha: 0.85),
+                  size: 28,
+                ),
               ],
             )
           : Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                _iconBadge(icon),
+                _iconBadge(),
                 const SizedBox(height: AppSpacing.sm),
-                Text(label, style: _labelStyle),
+                _title(),
+                const SizedBox(height: 1),
+                _subtitle(),
               ],
             ),
     );
   }
 
-  static const _labelStyle = TextStyle(
-    fontWeight: FontWeight.w800,
-    fontSize: 16,
-    color: Colors.white,
+  Widget _title() => Text(
+    label,
+    maxLines: 1,
+    overflow: TextOverflow.ellipsis,
+    style: const TextStyle(
+      fontWeight: FontWeight.w800,
+      fontSize: 17,
+      color: Colors.white,
+    ),
   );
 
-  Widget _iconBadge(IconData icon) => Container(
-    width: 44,
-    height: 44,
-    decoration: BoxDecoration(
-      color: Colors.white.withValues(alpha: 0.25),
-      borderRadius: BorderRadius.circular(14),
+  Widget _subtitle() => Text(
+    subtitle,
+    maxLines: 1,
+    overflow: TextOverflow.ellipsis,
+    style: TextStyle(
+      fontWeight: FontWeight.w600,
+      fontSize: 12,
+      color: Colors.white.withValues(alpha: 0.85),
     ),
-    child: Icon(icon, color: Colors.white, size: 24),
+  );
+
+  Widget _iconBadge() => Container(
+    width: 50,
+    height: 50,
+    decoration: BoxDecoration(
+      gradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          Colors.white.withValues(alpha: 0.32),
+          Colors.white.withValues(alpha: 0.14),
+        ],
+      ),
+      borderRadius: BorderRadius.circular(16),
+      border: Border.all(color: Colors.white.withValues(alpha: 0.35)),
+    ),
+    child: Icon(icon, color: Colors.white, size: 26),
   );
 }
