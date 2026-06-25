@@ -178,47 +178,46 @@ class _MenuCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return GameButton(
+      color: color,
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          vertical: AppSpacing.lg,
-          horizontal: AppSpacing.md,
-        ),
-        decoration: AppTheme.card(),
-        child: wide
-            ? Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _iconBadge(icon, color),
-                  const SizedBox(width: AppSpacing.md),
-                  Text(label, style: _labelStyle),
-                ],
-              )
-            : Column(
-                children: [
-                  _iconBadge(icon, color),
-                  const SizedBox(height: AppSpacing.sm),
-                  Text(label, style: _labelStyle),
-                ],
-              ),
+      depth: 6,
+      padding: const EdgeInsets.symmetric(
+        vertical: AppSpacing.lg,
+        horizontal: AppSpacing.md,
       ),
+      child: wide
+          ? Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _iconBadge(icon),
+                const SizedBox(width: AppSpacing.md),
+                Text(label, style: _labelStyle),
+              ],
+            )
+          : Column(
+              children: [
+                _iconBadge(icon),
+                const SizedBox(height: AppSpacing.sm),
+                Text(label, style: _labelStyle),
+              ],
+            ),
     );
   }
 
   static const _labelStyle = TextStyle(
-    fontWeight: FontWeight.w700,
+    fontWeight: FontWeight.w800,
     fontSize: 16,
-    color: AppColors.textPrimary,
+    color: Colors.white,
   );
 
-  Widget _iconBadge(IconData icon, Color color) => Container(
+  Widget _iconBadge(IconData icon) => Container(
     width: 44,
     height: 44,
     decoration: BoxDecoration(
-      color: color.withValues(alpha: 0.18),
+      color: Colors.white.withValues(alpha: 0.25),
       borderRadius: BorderRadius.circular(14),
     ),
-    child: Icon(icon, color: color, size: 24),
+    child: Icon(icon, color: Colors.white, size: 24),
   );
 }

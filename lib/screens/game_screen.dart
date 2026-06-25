@@ -283,6 +283,7 @@ class _GameScreenState extends State<GameScreen> {
             child: BoardActionButton(
               icon: Icons.undo_rounded,
               label: 'Undo',
+              color: AppColors.primary,
               count: p.undos,
               enabled: _board.canUndo,
               onTap: _undo,
@@ -294,6 +295,7 @@ class _GameScreenState extends State<GameScreen> {
             child: BoardActionButton(
               icon: Icons.lightbulb_rounded,
               label: 'Hint',
+              color: AppColors.warning,
               count: p.hints,
               onTap: _hint,
             ),
@@ -304,6 +306,7 @@ class _GameScreenState extends State<GameScreen> {
             child: BoardActionButton(
               icon: Icons.refresh_rounded,
               label: 'Restart',
+              color: AppColors.danger,
               onTap: _restart,
             ),
           ),

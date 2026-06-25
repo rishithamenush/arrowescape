@@ -71,6 +71,7 @@ class WinDialog extends StatelessWidget {
                 child: _SecondaryButton(
                   icon: Icons.refresh_rounded,
                   label: 'Replay',
+                  color: AppColors.secondary,
                   onTap: onReplay,
                 ),
               ),
@@ -79,6 +80,7 @@ class WinDialog extends StatelessWidget {
                 child: _SecondaryButton(
                   icon: Icons.home_rounded,
                   label: 'Home',
+                  color: AppColors.primary,
                   onTap: onHome,
                 ),
               ),
@@ -148,6 +150,7 @@ class StuckDialog extends StatelessWidget {
                 child: _SecondaryButton(
                   icon: Icons.refresh_rounded,
                   label: 'Restart',
+                  color: AppColors.danger,
                   onTap: onRestart,
                 ),
               ),
@@ -156,6 +159,7 @@ class StuckDialog extends StatelessWidget {
                 child: _SecondaryButton(
                   icon: Icons.home_rounded,
                   label: 'Home',
+                  color: AppColors.primary,
                   onTap: onHome,
                 ),
               ),
@@ -205,36 +209,34 @@ class _SecondaryButton extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.onTap,
+    required this.color,
   });
 
   final IconData icon;
   final String label;
   final VoidCallback onTap;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return GameButton(
+      color: color,
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-        decoration: BoxDecoration(
-          color: AppColors.surfaceAlt,
-          borderRadius: BorderRadius.circular(AppSpacing.radius),
-          border: Border.all(color: AppColors.hairline),
-        ),
-        child: Column(
-          children: [
-            Icon(icon, color: AppColors.textPrimary),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: const TextStyle(
-                color: AppColors.textSecondary,
-                fontWeight: FontWeight.w600,
-              ),
+      expand: true,
+      depth: 5,
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+      child: Column(
+        children: [
+          Icon(icon, color: Colors.white),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w700,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
