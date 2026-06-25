@@ -207,35 +207,54 @@ class StatPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = color ?? AppColors.primary;
     final pill = Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.sm,
-      ),
+      padding: const EdgeInsets.fromLTRB(5, 5, 14, 5),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [Colors.white, Color(0xFFF1F3FF)],
+          colors: [Colors.white, Color(0xFFEFF1FF)],
         ),
         borderRadius: BorderRadius.circular(40),
         boxShadow: [
           BoxShadow(
-            color: (color ?? AppColors.primary).withValues(alpha: 0.22),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: c.withValues(alpha: 0.28),
+            blurRadius: 12,
+            offset: const Offset(0, 5),
           ),
         ],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 18, color: color ?? AppColors.textSecondary),
-          const SizedBox(width: 6),
+          // Colourful glossy icon disc.
+          Container(
+            width: 28,
+            height: 28,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color.lerp(c, Colors.white, 0.30)!, c],
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: c.withValues(alpha: 0.45),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Icon(icon, size: 16, color: Colors.white),
+          ),
+          const SizedBox(width: 7),
           Text(
             label,
             style: const TextStyle(
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w900,
+              fontSize: 15,
               color: AppColors.textPrimary,
             ),
           ),
@@ -278,7 +297,7 @@ class RoundIconButton extends StatelessWidget {
           child: SizedBox(
             width: 46,
             height: 46,
-            child: Icon(icon, color: color ?? AppColors.textPrimary, size: 22),
+            child: Icon(icon, color: color ?? AppColors.primary, size: 23),
           ),
         ),
         if (badge != null)
