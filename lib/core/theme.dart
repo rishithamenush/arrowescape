@@ -1,41 +1,45 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-/// Central design system for Arrow Escape.
-///
-/// Calming, modern, rounded UI with a finger-friendly layout. All colors,
-/// spacing and text styles live here so screens stay consistent.
+/// Bright, playful design system tuned for kids — candy colors, big rounded
+/// shapes, soft colored shadows and a friendly rounded font.
 class AppColors {
   AppColors._();
 
-  // Brand / background
-  static const Color background = Color(0xFF14182B);
-  static const Color surface = Color(0xFF1E2440);
-  static const Color surfaceAlt = Color(0xFF272E52);
-  static const Color overlay = Color(0xCC0B0E1C);
+  // Cheerful sky gradient used behind every screen.
+  static const Color bgTop = Color(0xFF7CC8FF); // sky blue
+  static const Color bgBottom = Color(0xFFC9A9FF); // soft purple
 
-  // Accents
-  static const Color primary = Color(0xFF5B8DEF);
-  static const Color primaryDark = Color(0xFF3C6BD4);
-  static const Color secondary = Color(0xFF8A6BF2);
-  static const Color success = Color(0xFF3FD3A1);
-  static const Color warning = Color(0xFFF6C453);
-  static const Color danger = Color(0xFFF06B6B);
-  static const Color coin = Color(0xFFFFD45E);
+  // Card / surface
+  static const Color surface = Color(0xFFFFFFFF);
+  static const Color surfaceAlt = Color(0xFFF3F5FF);
+  static const Color hairline = Color(0x141B1B3A);
+  static const Color overlay = Color(0x802A1A66);
 
-  // Text
-  static const Color textPrimary = Color(0xFFF4F6FF);
-  static const Color textSecondary = Color(0xFFAEB6D8);
-  static const Color textMuted = Color(0xFF6E76A0);
+  // Accents (vivid + friendly)
+  static const Color primary = Color(0xFF5B7CFA);
+  static const Color primaryDark = Color(0xFF3F5BE0);
+  static const Color secondary = Color(0xFFA45EFF);
+  static const Color success = Color(0xFF22C77B);
+  static const Color warning = Color(0xFFFFB020);
+  static const Color danger = Color(0xFFFF5A7E);
+  static const Color coin = Color(0xFFFFC93C);
 
-  // Arrow palette (color index -> color). 0 is the default neutral arrow.
+  // Text (dark on light)
+  static const Color textPrimary = Color(0xFF2B2D55);
+  static const Color textSecondary = Color(0xFF6E7191);
+  static const Color textMuted = Color(0xFFAEB0C8);
+  static const Color onColor = Color(0xFFFFFFFF);
+
+  /// Candy arrow palette. 0 is the default friendly blue.
   static const List<Color> arrowColors = <Color>[
-    Color(0xFF5B8DEF), // 0 default blue
-    Color(0xFFF06B6B), // 1 red
-    Color(0xFF3FD3A1), // 2 green
-    Color(0xFFF6C453), // 3 amber
-    Color(0xFF8A6BF2), // 4 purple
-    Color(0xFFEF8ACA), // 5 pink
+    Color(0xFF54A0FF), // blue
+    Color(0xFFFF6B6B), // red
+    Color(0xFF1DD1A1), // green
+    Color(0xFFFEC130), // yellow
+    Color(0xFFA55EEA), // purple
+    Color(0xFFFF6BCB), // pink
+    Color(0xFFFF9F43), // orange
   ];
 
   static Color arrowColor(int index) => arrowColors[index % arrowColors.length];
@@ -50,25 +54,23 @@ class AppSpacing {
   static const double xl = 32;
   static const double xxl = 48;
 
-  static const double radius = 18;
-  static const double radiusLg = 28;
+  static const double radius = 22;
+  static const double radiusLg = 32;
 }
 
 class AppTheme {
   AppTheme._();
 
-  static ThemeData get dark {
-    final base = ThemeData.dark(useMaterial3: true);
-    // Nunito — rounded, friendly and very readable; a great fit for a calm
-    // casual puzzle game. Applied to the whole text theme so every screen
-    // (and explicitly-styled Text that omits a family) inherits it.
-    final textTheme = GoogleFonts.nunitoTextTheme(base.textTheme).apply(
+  static ThemeData get playful {
+    final base = ThemeData(useMaterial3: true, brightness: Brightness.light);
+    // Baloo 2 — super rounded and playful; perfect for a children's game.
+    final textTheme = GoogleFonts.baloo2TextTheme(base.textTheme).apply(
       bodyColor: AppColors.textPrimary,
       displayColor: AppColors.textPrimary,
     );
     return base.copyWith(
-      scaffoldBackgroundColor: AppColors.background,
-      colorScheme: const ColorScheme.dark(
+      scaffoldBackgroundColor: AppColors.bgTop,
+      colorScheme: const ColorScheme.light(
         primary: AppColors.primary,
         secondary: AppColors.secondary,
         surface: AppColors.surface,
@@ -76,30 +78,30 @@ class AppTheme {
       ),
       textTheme: textTheme,
       iconTheme: const IconThemeData(color: AppColors.textPrimary),
-      splashColor: AppColors.primary.withValues(alpha: 0.15),
+      splashColor: AppColors.primary.withValues(alpha: 0.12),
       highlightColor: Colors.transparent,
     );
   }
 
-  /// Standard rounded card decoration used across screens.
-  static BoxDecoration card({Color? color, double radius = AppSpacing.radius}) {
+  /// Soft, colored card with a playful drop shadow.
+  static BoxDecoration card({
+    Color? color,
+    double radius = AppSpacing.radius,
+    Color? glow,
+  }) {
+    final shadow = (glow ?? AppColors.primary).withValues(alpha: 0.18);
     return BoxDecoration(
       color: color ?? AppColors.surface,
       borderRadius: BorderRadius.circular(radius),
       boxShadow: [
-        BoxShadow(
-          color: Colors.black.withValues(alpha: 0.25),
-          blurRadius: 16,
-          offset: const Offset(0, 8),
-        ),
+        BoxShadow(color: shadow, blurRadius: 18, offset: const Offset(0, 8)),
       ],
     );
   }
 
-  /// Subtle gradient for the main background.
   static const LinearGradient backgroundGradient = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
-    colors: [Color(0xFF1B2142), AppColors.background],
+    colors: [AppColors.bgTop, AppColors.bgBottom],
   );
 }

@@ -25,9 +25,15 @@ class StatPill extends StatelessWidget {
         vertical: AppSpacing.sm,
       ),
       decoration: BoxDecoration(
-        color: AppColors.surface.withValues(alpha: 0.9),
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(40),
-        border: Border.all(color: Colors.white12),
+        boxShadow: [
+          BoxShadow(
+            color: (color ?? AppColors.primary).withValues(alpha: 0.18),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -77,7 +83,13 @@ class RoundIconButton extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppColors.surface,
               shape: BoxShape.circle,
-              border: Border.all(color: Colors.white12),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withValues(alpha: 0.18),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
             child: Icon(icon, color: color ?? AppColors.textPrimary, size: 22),
           ),

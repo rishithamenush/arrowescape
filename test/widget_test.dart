@@ -21,7 +21,7 @@ Widget _host(Widget screen, {double textScale = 1.0}) {
   return GameScope(
     state: GameState(),
     child: MaterialApp(
-      theme: AppTheme.dark,
+      theme: AppTheme.playful,
       home: Builder(
         builder: (context) => MediaQuery(
           data: MediaQuery.of(
@@ -39,10 +39,13 @@ void main() {
     tester,
   ) async {
     await tester.pumpWidget(const ArrowEscapeApp());
+    await tester.pump();
     expect(find.text('ARROW ESCAPE'), findsOneWidget);
-    // Fire the splash auto-navigate timer and settle the route transition.
-    await tester.pump(const Duration(seconds: 2));
-    await tester.pumpAndSettle();
+    // The Flame background runs a continuous loop, so pumpAndSettle would never
+    // return — advance time with explicit pumps instead.
+    await tester.pump(const Duration(seconds: 2)); // fire the nav timer
+    await tester.pump(); // start the route transition
+    await tester.pump(const Duration(milliseconds: 600)); // finish it
     expect(find.text('PLAY'), findsOneWidget);
   });
 
@@ -68,9 +71,10 @@ void main() {
         addTearDown(tester.view.resetDevicePixelRatio);
 
         await tester.pumpWidget(_host(entry.value, textScale: 1.3));
-        await tester.pumpAndSettle();
-
-        // Any RenderFlex overflow / layout assertion surfaces here.
+        // A couple of pumps lay everything out (can't pumpAndSettle with the
+        // always-running Flame background). Any RenderFlex overflow surfaces here.
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 50));
         expect(tester.takeException(), isNull);
       });
     }

@@ -167,7 +167,7 @@ class _DayChip extends StatelessWidget {
                     : AppColors.surface,
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: isToday ? AppColors.warning : Colors.white12,
+                  color: isToday ? AppColors.warning : AppColors.hairline,
                   width: isToday ? 2 : 1,
                 ),
               ),

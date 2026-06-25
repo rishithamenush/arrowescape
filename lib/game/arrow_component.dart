@@ -8,9 +8,10 @@ import 'package:flutter/material.dart';
 import '../core/theme.dart';
 import '../models/arrow.dart';
 
-/// A single arrow rendered by Flame. Draws a rounded, gradient tile with a
-/// bold directional arrow, handles taps, and exposes juicy escape / shake /
-/// hint effects.
+/// A single arrow rendered by Flame as a chunky, glossy 3D "candy button".
+///
+/// Every arrow is vividly colour-coded by its direction, which makes the board
+/// bright and rainbow-like and also helps young players read it at a glance.
 class ArrowComponent extends PositionComponent with TapCallbacks {
   ArrowComponent({
     required this.arrow,
@@ -29,7 +30,17 @@ class ArrowComponent extends PositionComponent with TapCallbacks {
   bool _highlighted = false;
   double _glow = 0; // animated 0..1 glow used for the hint pulse
 
-  Color get _color => AppColors.arrowColor(arrow.color);
+  /// Bright, distinct colour per direction.
+  static const Map<ArrowDir, Color> _dirColors = {
+    ArrowDir.up: Color(0xFF3D7BFF), // blue
+    ArrowDir.right: Color(0xFF15C98A), // green
+    ArrowDir.down: Color(0xFFB45CFF), // purple
+    ArrowDir.left: Color(0xFFFF8A3D), // orange
+  };
+
+  Color get _color => _dirColors[arrow.dir]!;
+
+  Color get displayColor => _color;
 
   double get _angle => switch (arrow.dir) {
     ArrowDir.up => 0,
@@ -38,13 +49,15 @@ class ArrowComponent extends PositionComponent with TapCallbacks {
     ArrowDir.left => -math.pi / 2,
   };
 
+  Color _lighten(Color c, double t) => Color.lerp(c, Colors.white, t)!;
+  Color _darken(Color c, double t) => Color.lerp(c, Colors.black, t)!;
+
   @override
   void onTapDown(TapDownEvent event) => onTapArrow(this);
 
   @override
   void update(double dt) {
     super.update(dt);
-    // Ease the glow towards its target so the hint pulse is smooth.
     final target = _highlighted ? 1.0 : 0.0;
     _glow += (target - _glow) * (dt * 8).clamp(0, 1);
   }
@@ -52,52 +65,72 @@ class ArrowComponent extends PositionComponent with TapCallbacks {
   @override
   void render(Canvas canvas) {
     final s = size.x;
-    final rect = Rect.fromLTWH(0, 0, s, s);
-    final radius = Radius.circular(s * 0.24);
-    final rrect = RRect.fromRectAndRadius(rect, radius);
+    final color = _color;
+    final radius = Radius.circular(s * 0.28);
+    final faceRect = Rect.fromLTWH(0, 0, s, s);
+    final faceRRect = RRect.fromRectAndRadius(faceRect, radius);
+    final depth = s * 0.12;
 
-    // Drop shadow.
+    // 1. Coloured glow / drop shadow.
     canvas.drawRRect(
-      rrect.shift(const Offset(0, 4)),
+      faceRRect.shift(Offset(0, depth * 0.9)),
       Paint()
-        ..color = _color.withValues(alpha: 0.35)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6),
+        ..color = color.withValues(alpha: _highlighted ? 0.7 : 0.5)
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, _glow > 0.1 ? 14 : 9),
     );
 
-    // Gradient body.
-    final body = Paint()
-      ..shader = LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [
-          _color.withValues(alpha: 0.95),
-          _color.withValues(alpha: 0.70),
-        ],
-      ).createShader(rect);
-    canvas.drawRRect(rrect, body);
-
-    // Border (brightens with the hint glow).
+    // 2. Darker "side" below the face for a 3D button thickness.
     canvas.drawRRect(
-      rrect.deflate(0.75),
+      RRect.fromRectAndRadius(Rect.fromLTWH(0, depth, s, s), radius),
+      Paint()..color = _darken(color, 0.28),
+    );
+
+    // 3. Glossy gradient face.
+    canvas.drawRRect(
+      faceRRect,
+      Paint()
+        ..shader = LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [_lighten(color, 0.22), color, _darken(color, 0.08)],
+          stops: const [0, 0.55, 1],
+        ).createShader(faceRect),
+    );
+
+    // 4. Top gloss highlight.
+    final gloss = RRect.fromRectAndRadius(
+      Rect.fromLTWH(s * 0.12, s * 0.09, s * 0.76, s * 0.32),
+      Radius.circular(s * 0.18),
+    );
+    canvas.drawRRect(
+      gloss,
+      Paint()..color = Colors.white.withValues(alpha: 0.26),
+    );
+
+    // 5. Rim + hint glow.
+    canvas.drawRRect(
+      faceRRect.deflate(0.8),
       Paint()
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.5 + _glow * 2
-        ..color = Color.lerp(Colors.white24, AppColors.warning, _glow)!,
+        ..strokeWidth = 1.5 + _glow * 2.5
+        ..color = Color.lerp(
+          Colors.white.withValues(alpha: 0.5),
+          AppColors.warning,
+          _glow,
+        )!,
     );
-
-    // Hint glow halo.
     if (_glow > 0.01) {
       canvas.drawRRect(
-        rrect.inflate(2),
+        faceRRect.inflate(2.5),
         Paint()
           ..style = PaintingStyle.stroke
           ..strokeWidth = 3
-          ..color = AppColors.warning.withValues(alpha: 0.6 * _glow)
-          ..maskFilter = MaskFilter.blur(BlurStyle.normal, 6 * _glow),
+          ..color = AppColors.warning.withValues(alpha: 0.7 * _glow)
+          ..maskFilter = MaskFilter.blur(BlurStyle.normal, 7 * _glow),
       );
     }
 
-    // Arrow glyph, rotated to its direction.
+    // 6. Bold arrow glyph (with a soft shadow), rotated to its direction.
     canvas.save();
     canvas.translate(s / 2, s / 2);
     canvas.rotate(_angle);
@@ -106,21 +139,43 @@ class ArrowComponent extends PositionComponent with TapCallbacks {
   }
 
   void _drawArrow(Canvas canvas, double s) {
-    final paint = Paint()
-      ..color = Colors.white
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = s * 0.12
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
+    final half = s * 0.23;
+    final head = s * 0.19;
 
-    final half = s * 0.24;
-    final head = s * 0.18;
+    Path arrowPath() {
+      return Path()
+        ..moveTo(0, half)
+        ..lineTo(0, -half)
+        ..moveTo(0, -half)
+        ..lineTo(-head, -half + head)
+        ..moveTo(0, -half)
+        ..lineTo(head, -half + head);
+    }
 
-    // Shaft.
-    canvas.drawLine(Offset(0, half), Offset(0, -half), paint);
-    // Arrow head.
-    canvas.drawLine(Offset(0, -half), Offset(-head, -half + head), paint);
-    canvas.drawLine(Offset(0, -half), Offset(head, -half + head), paint);
+    // Drop shadow under the glyph for depth.
+    canvas.save();
+    canvas.translate(0, s * 0.035);
+    canvas.drawPath(
+      arrowPath(),
+      Paint()
+        ..color = Colors.black.withValues(alpha: 0.18)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = s * 0.15
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round,
+    );
+    canvas.restore();
+
+    // White glyph on top.
+    canvas.drawPath(
+      arrowPath(),
+      Paint()
+        ..color = Colors.white
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = s * 0.15
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round,
+    );
   }
 
   /// Slides the arrow off the board while shrinking, then removes it and

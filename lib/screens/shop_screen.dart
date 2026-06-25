@@ -145,7 +145,7 @@ class ShopScreen extends StatelessWidget {
       SnackBar(
         content: Text(msg),
         behavior: SnackBarBehavior.floating,
-        backgroundColor: AppColors.surfaceAlt,
+        backgroundColor: AppColors.textPrimary,
       ),
     );
   }

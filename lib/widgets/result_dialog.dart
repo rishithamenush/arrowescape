@@ -220,7 +220,7 @@ class _SecondaryButton extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.surfaceAlt,
           borderRadius: BorderRadius.circular(AppSpacing.radius),
-          border: Border.all(color: Colors.white12),
+          border: Border.all(color: AppColors.hairline),
         ),
         child: Column(
           children: [

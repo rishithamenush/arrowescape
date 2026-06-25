@@ -190,7 +190,7 @@ class _LevelTile extends StatelessWidget {
               : AppColors.surface.withValues(alpha: 0.4),
           borderRadius: BorderRadius.circular(AppSpacing.radius),
           border: Border.all(
-            color: unlocked ? color.withValues(alpha: 0.5) : Colors.white10,
+            color: unlocked ? color.withValues(alpha: 0.5) : AppColors.hairline,
           ),
         ),
         child: unlocked

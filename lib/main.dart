@@ -35,7 +35,7 @@ class _ArrowEscapeAppState extends State<ArrowEscapeApp> {
       child: MaterialApp(
         title: 'Arrow Escape',
         debugShowCheckedModeBanner: false,
-        theme: AppTheme.dark,
+        theme: AppTheme.playful,
         // Clamp the OS text-scale so very large/small accessibility settings
         // still honour the user's preference without shattering layouts.
         builder: (context, child) => MediaQuery.withClampedTextScaling(

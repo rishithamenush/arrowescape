@@ -107,7 +107,7 @@ class ArrowEscapeGame extends FlameGame {
     if (escaped) {
       _inputLocked = true;
       _components.remove(comp.arrow.id);
-      _spawnBurst(comp.position, comp.arrow.color);
+      _spawnBurst(comp.position, comp.displayColor);
       comp.playEscape(_escapeOffset(comp.arrow), () {
         _inputLocked = false;
         _reportResult();
@@ -130,8 +130,7 @@ class ArrowEscapeGame extends FlameGame {
     }
   }
 
-  void _spawnBurst(Vector2 center, int colorIndex) {
-    final color = AppColors.arrowColor(colorIndex);
+  void _spawnBurst(Vector2 center, Color color) {
     add(
       ParticleSystemComponent(
         position: center,
@@ -190,9 +189,18 @@ class _BoardBackground extends PositionComponent {
       const Radius.circular(AppSpacing.radiusLg),
     );
 
-    canvas.drawRRect(boardRRect, Paint()..color = AppColors.surfaceAlt);
+    // Soft drop shadow so the bright board pops off the colourful backdrop.
+    canvas.drawRRect(
+      boardRRect.shift(const Offset(0, 8)),
+      Paint()
+        ..color = AppColors.primaryDark.withValues(alpha: 0.22)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 14),
+    );
+    canvas.drawRRect(boardRRect, Paint()..color = AppColors.surface);
 
-    final cellPaint = Paint()..color = Colors.white.withValues(alpha: 0.05);
+    // Colourful two-tone "checkerboard" cells for a real game-board feel.
+    final tintA = Paint()..color = AppColors.primary.withValues(alpha: 0.10);
+    final tintB = Paint()..color = AppColors.secondary.withValues(alpha: 0.10);
     for (var r = 0; r < rows; r++) {
       for (var c = 0; c < cols; c++) {
         final rect = Rect.fromLTWH(
@@ -202,8 +210,8 @@ class _BoardBackground extends PositionComponent {
           cell,
         );
         canvas.drawRRect(
-          RRect.fromRectAndRadius(rect, Radius.circular(cell * 0.22)),
-          cellPaint,
+          RRect.fromRectAndRadius(rect, Radius.circular(cell * 0.24)),
+          (r + c).isEven ? tintA : tintB,
         );
       }
     }
