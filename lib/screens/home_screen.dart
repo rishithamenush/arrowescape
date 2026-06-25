@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/theme.dart';
 import '../state/game_state.dart';
 import '../widgets/app_background.dart';
+import '../widgets/app_logo.dart';
 import '../widgets/hud.dart';
 import 'daily_challenge_screen.dart';
 import 'game_screen.dart';
@@ -53,7 +54,7 @@ class HomeScreen extends StatelessWidget {
                       ],
                     ),
                     const Spacer(),
-                    const _HomeLogo(),
+                    const AppLogo(size: 112),
                     const SizedBox(height: AppSpacing.md),
                     const FittedBox(
                       fit: BoxFit.scaleDown,
@@ -126,38 +127,6 @@ class HomeScreen extends StatelessWidget {
 
   static void _push(BuildContext context, Widget screen) {
     Navigator.of(context).push(MaterialPageRoute(builder: (_) => screen));
-  }
-}
-
-class _HomeLogo extends StatelessWidget {
-  const _HomeLogo();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 96,
-      height: 96,
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [AppColors.primary, AppColors.secondary],
-        ),
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.5),
-            blurRadius: 26,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: const Icon(
-        Icons.north_east_rounded,
-        size: 56,
-        color: Colors.white,
-      ),
-    );
   }
 }
 

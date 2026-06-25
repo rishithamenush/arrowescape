@@ -38,11 +38,11 @@ class _PressableState extends State<Pressable> {
   }
 }
 
-/// A glossy, 3D "candy" button matching the arrow tiles: diagonal gradient
-/// face, a raised top shine, a darker bottom edge for thickness, a soft
-/// coloured glow and a press-bounce. Works as a pill, card or circle by
-/// varying [radius]/[padding].
-class GameButton extends StatelessWidget {
+/// A glossy, 3D "candy" button matching the arrow tiles. It has a real raised
+/// base that the face visibly presses down onto when tapped, plus a beveled
+/// face (top shine + bottom inner shade) and a soft coloured glow. Works as a
+/// pill, card or circle by varying [radius]/[padding].
+class GameButton extends StatefulWidget {
   const GameButton({
     super.key,
     required this.child,
@@ -68,32 +68,58 @@ class GameButton extends StatelessWidget {
   final bool expand;
 
   @override
-  Widget build(BuildContext context) {
-    final dark = Color.lerp(color, Colors.black, 0.30)!;
-    final light = Color.lerp(color, Colors.white, 0.24)!;
-    final br = BorderRadius.circular(radius);
+  State<GameButton> createState() => _GameButtonState();
+}
 
-    return Pressable(
-      onTap: enabled ? onTap : null,
+class _GameButtonState extends State<GameButton> {
+  bool _down = false;
+
+  bool get _interactive => widget.enabled && widget.onTap != null;
+
+  void _set(bool v) {
+    if (!_interactive) return;
+    setState(() => _down = v);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final color = widget.color;
+    final dark = Color.lerp(color, Colors.black, 0.34)!;
+    final light = Color.lerp(color, Colors.white, 0.28)!;
+    final br = BorderRadius.circular(widget.radius);
+    final depth = widget.depth;
+    // How far the face has sunk towards its base.
+    final press = _down ? depth - 1.5 : 0.0;
+
+    return GestureDetector(
+      onTapDown: (_) => _set(true),
+      onTapUp: (_) => _set(false),
+      onTapCancel: () => _set(false),
+      onTap: _interactive ? widget.onTap : null,
       child: Opacity(
-        opacity: enabled ? 1 : 0.45,
-        child: Container(
-          width: expand ? double.infinity : null,
+        opacity: widget.enabled ? 1 : 0.5,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 70),
+          curve: Curves.easeOut,
+          width: widget.expand ? double.infinity : null,
+          transform: Matrix4.translationValues(0, press, 0),
           decoration: BoxDecoration(
             borderRadius: br,
             boxShadow: [
-              // 3D thickness (solid, no blur) + soft coloured glow.
-              BoxShadow(color: dark, offset: Offset(0, depth)),
+              // Solid raised base (shrinks as the button is pressed in).
+              BoxShadow(color: dark, offset: Offset(0, depth - press)),
+              // Soft coloured glow.
               BoxShadow(
-                color: color.withValues(alpha: 0.40),
-                offset: Offset(0, depth + 3),
-                blurRadius: 14,
+                color: color.withValues(alpha: 0.38),
+                offset: Offset(0, depth + 4 - press),
+                blurRadius: 16,
               ),
             ],
           ),
           child: ClipRRect(
             borderRadius: br,
             child: Stack(
+              alignment: Alignment.center,
               children: [
                 // Glossy gradient face.
                 Positioned.fill(
@@ -105,9 +131,9 @@ class GameButton extends StatelessWidget {
                         colors: [
                           light,
                           color,
-                          Color.lerp(color, Colors.black, 0.06)!,
+                          Color.lerp(color, Colors.black, 0.10)!,
                         ],
-                        stops: const [0, 0.55, 1],
+                        stops: const [0, 0.5, 1],
                       ),
                     ),
                   ),
@@ -124,7 +150,7 @@ class GameButton extends StatelessWidget {
                             begin: Alignment.topCenter,
                             end: Alignment.bottomCenter,
                             colors: [
-                              Colors.white.withValues(alpha: 0.32),
+                              Colors.white.withValues(alpha: 0.38),
                               Colors.white.withValues(alpha: 0.0),
                             ],
                           ),
@@ -133,7 +159,28 @@ class GameButton extends StatelessWidget {
                     ),
                   ),
                 ),
-                Padding(padding: padding, child: child),
+                // Bottom inner shade for depth.
+                Positioned.fill(
+                  child: Align(
+                    alignment: Alignment.bottomCenter,
+                    child: FractionallySizedBox(
+                      heightFactor: 0.34,
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.black.withValues(alpha: 0.0),
+                              Colors.black.withValues(alpha: 0.14),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                Padding(padding: widget.padding, child: widget.child),
               ],
             ),
           ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/theme.dart';
 import '../widgets/app_background.dart';
+import '../widgets/app_logo.dart';
 import 'home_screen.dart';
 
 /// Animated logo + loading. Auto-navigates to Home after a short delay.
@@ -54,7 +55,7 @@ class _SplashScreenState extends State<SplashScreen>
             children: [
               ScaleTransition(
                 scale: CurvedAnimation(parent: _anim, curve: Curves.elasticOut),
-                child: const _Logo(),
+                child: const AppLogo(size: 124),
               ),
               const SizedBox(height: AppSpacing.xl),
               FadeTransition(
@@ -96,38 +97,6 @@ class _SplashScreenState extends State<SplashScreen>
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _Logo extends StatelessWidget {
-  const _Logo();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 110,
-      height: 110,
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [AppColors.primary, AppColors.secondary],
-        ),
-        borderRadius: BorderRadius.circular(30),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.5),
-            blurRadius: 30,
-            offset: const Offset(0, 12),
-          ),
-        ],
-      ),
-      child: const Icon(
-        Icons.north_east_rounded,
-        size: 64,
-        color: Colors.white,
       ),
     );
   }
