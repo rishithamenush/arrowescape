@@ -148,79 +148,130 @@ class _GameScreenState extends State<GameScreen> {
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
       child: Row(
         children: [
-          _whitePill(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          // Score card with a medal badge.
+          _softPill(
+            child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  'LEVEL ${_level + 1}',
-                  style: const TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 1.5,
-                    color: AppColors.label,
+                Container(
+                  width: 34,
+                  height: 34,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [AppColors.pinkLight, AppColors.pink],
+                    ),
+                  ),
+                  child: const Icon(
+                    Icons.workspace_premium_rounded,
+                    color: Colors.white,
+                    size: 20,
                   ),
                 ),
-                Text(
-                  '${_engine.score}',
-                  style: const TextStyle(
-                    fontSize: 24,
-                    height: 1,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.heading,
-                  ),
+                const SizedBox(width: 8),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'LEVEL ${_level + 1}',
+                      style: const TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 1.2,
+                        color: AppColors.label,
+                      ),
+                    ),
+                    Text(
+                      '${_engine.score}',
+                      style: const TextStyle(
+                        fontSize: 22,
+                        height: 1,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.heading,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
           const Spacer(),
           if (_engine.combo >= 2) ...[_comboBadge(), const SizedBox(width: 8)],
-          _whitePill(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  '${_engine.shots}',
-                  style: TextStyle(
-                    fontSize: 22,
-                    height: 1,
-                    fontWeight: FontWeight.w700,
-                    color: _engine.shots <= 3
-                        ? const Color(0xFFFF3B6B)
-                        : AppColors.heading,
-                  ),
-                ),
-                const Text(
-                  'MOVES',
-                  style: TextStyle(
-                    fontSize: 9,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 1,
-                    color: AppColors.label,
-                  ),
-                ),
-              ],
-            ),
-          ),
+          _movesChip(),
           const SizedBox(width: 8),
-          _iconButton(
+          _circleButton(
             onTap: _toggleSound,
-            child: Text(
-              state.soundOn ? '♪' : '◌',
-              style: const TextStyle(
-                fontSize: 16,
-                color: Color(0xFFFF6F9D),
-                fontWeight: FontWeight.w700,
-              ),
-            ),
+            icon: state.soundOn
+                ? Icons.music_note_rounded
+                : Icons.music_off_rounded,
           ),
           const SizedBox(width: 8),
-          _iconButton(
-            onTap: _pause,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: const [_PauseBar(), SizedBox(width: 3), _PauseBar()],
+          _circleButton(onTap: _pause, icon: Icons.pause_rounded),
+        ],
+      ),
+    );
+  }
+
+  Widget _softPill({required Widget child}) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+    decoration: BoxDecoration(
+      gradient: const LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [Colors.white, Color(0xFFF3F1FF)],
+      ),
+      borderRadius: BorderRadius.circular(20),
+      boxShadow: [
+        BoxShadow(
+          color: AppColors.heading.withValues(alpha: 0.12),
+          blurRadius: 10,
+          offset: const Offset(0, 4),
+        ),
+      ],
+    ),
+    child: child,
+  );
+
+  /// A vibrant moves chip that turns red/urgent when running low.
+  Widget _movesChip() {
+    final low = _engine.shots <= 3;
+    final colors = low
+        ? const [Color(0xFFFF8FA8), Color(0xFFFF3B6B)]
+        : const [Color(0xFFFFD27A), Color(0xFFFF9A3D)];
+    final shadow = low ? const Color(0xFFD62F76) : const Color(0xFFD77A1E);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: colors,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [BoxShadow(color: shadow, offset: const Offset(0, 3))],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            '${_engine.shots}',
+            style: const TextStyle(
+              fontSize: 22,
+              height: 1,
+              fontWeight: FontWeight.w800,
+              color: Colors.white,
+            ),
+          ),
+          const Text(
+            'MOVES',
+            style: TextStyle(
+              fontSize: 9,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 1,
+              color: Colors.white,
             ),
           ),
         ],
@@ -228,27 +279,23 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
-  Widget _whitePill({required Widget child}) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-    decoration: BoxDecoration(
-      color: AppColors.pill,
-      borderRadius: BorderRadius.circular(16),
-      boxShadow: const [
-        BoxShadow(color: AppColors.pillShadow, offset: Offset(0, 3)),
-      ],
-    ),
-    child: child,
-  );
-
-  Widget _iconButton({required VoidCallback onTap, required Widget child}) {
+  Widget _circleButton({
+    required VoidCallback onTap,
+    required IconData icon,
+    Color color = AppColors.accent,
+  }) {
     return CandyButton(
-      color: AppColors.pill,
+      color: Colors.white,
       shadow: AppColors.pillShadow,
-      radius: 13,
+      radius: 21,
       depth: 3,
       padding: EdgeInsets.zero,
       onTap: onTap,
-      child: SizedBox(width: 40, height: 40, child: Center(child: child)),
+      child: SizedBox(
+        width: 42,
+        height: 42,
+        child: Center(child: Icon(icon, color: color, size: 22)),
+      ),
     );
   }
 
@@ -322,13 +369,10 @@ class _GameScreenState extends State<GameScreen> {
             onTap: _engine.selectClear,
           ),
           const Spacer(),
-          _iconButton(
+          _circleButton(
             onTap: _engine.swap,
-            child: const Icon(
-              Icons.swap_horiz_rounded,
-              color: AppColors.body,
-              size: 22,
-            ),
+            icon: Icons.swap_horiz_rounded,
+            color: AppColors.body,
           ),
           const SizedBox(width: 10),
           Column(
@@ -650,19 +694,6 @@ class _GameScreenState extends State<GameScreen> {
           color: color,
         ),
       );
-}
-
-class _PauseBar extends StatelessWidget {
-  const _PauseBar();
-  @override
-  Widget build(BuildContext context) => Container(
-    width: 4,
-    height: 14,
-    decoration: BoxDecoration(
-      color: const Color(0xFFFF6F9D),
-      borderRadius: BorderRadius.circular(2),
-    ),
-  );
 }
 
 class _PowerButton extends StatelessWidget {
