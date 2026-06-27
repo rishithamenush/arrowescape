@@ -316,10 +316,57 @@ class _WorldMapScreenState extends State<WorldMapScreen>
       final raw = ((_entrance.value * (n + 5) - i) / 5).clamp(0.0, 1.0);
       final appear = raw;
       final pop = Curves.easeOutBack.transform(raw);
+      final isFinal = i == n - 1; // top of the climb = the world's goal
       // Gentle bob for the current node, once it has popped in.
       final bob = current && appear > 0.95
-          ? math.sin(_loop.value * 2 * math.pi) * 4
+          ? math.sin(_loop.value * 2 * math.pi) * 5
           : 0.0;
+      final pulse = 0.5 + 0.5 * math.sin(_loop.value * 2 * math.pi);
+      final nodeScale = (current ? 1.2 : 1.0) * pop;
+
+      // Glowing halo behind the current node.
+      if (current) {
+        const halo = 150.0;
+        widgets.add(
+          Positioned(
+            left: p.dx - halo / 2,
+            top: p.dy - halo / 2 + bob,
+            child: IgnorePointer(
+              child: Opacity(
+                opacity: appear * (0.4 + 0.35 * pulse),
+                child: Container(
+                  width: halo,
+                  height: halo,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        AppColors.accent.withValues(alpha: 0.6),
+                        AppColors.accent.withValues(alpha: 0),
+                      ],
+                      stops: const [0.2, 1],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      }
+
+      // Goal flag planted on the final node of the world.
+      if (isFinal) {
+        widgets.add(
+          Positioned(
+            left: p.dx - 10,
+            top: p.dy - _node / 2 - 58 + bob,
+            child: Opacity(
+              opacity: appear,
+              child: _GoalFlag(loop: _loop),
+            ),
+          ),
+        );
+      }
 
       if (completed) {
         widgets.add(
@@ -338,23 +385,25 @@ class _WorldMapScreenState extends State<WorldMapScreen>
       if (current) {
         widgets.add(
           Positioned(
-            left: p.dx - _node / 2 - 12,
-            top: p.dy - _node / 2 - 12 + bob,
+            left: p.dx - (_node + 28) / 2,
+            top: p.dy - (_node + 28) / 2 + bob,
             child: Opacity(
               opacity: appear,
-              child: const _PulseRing(size: _node + 24),
+              child: const _PulseRing(size: _node + 28),
             ),
           ),
         );
-        // Bobbing "PLAY" marker above the node.
-        widgets.add(
-          Positioned(
-            left: p.dx - 40,
-            top: p.dy - _node / 2 - 44 + bob,
-            width: 80,
-            child: Opacity(opacity: appear, child: const _PlayTag()),
-          ),
-        );
+        // Bobbing "PLAY" marker (unless the goal flag already marks this node).
+        if (!isFinal) {
+          widgets.add(
+            Positioned(
+              left: p.dx - 44,
+              top: p.dy - _node / 2 - 56 + bob,
+              width: 88,
+              child: Opacity(opacity: appear, child: const _PlayTag()),
+            ),
+          );
+        }
       }
 
       widgets.add(
@@ -362,7 +411,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
           left: p.dx - _node / 2,
           top: p.dy - _node / 2 + bob,
           child: Transform.scale(
-            scale: pop.clamp(0.0, 1.1),
+            scale: nodeScale.clamp(0.0, 1.3),
             child: Opacity(
               opacity: appear.clamp(0.0, 1.0),
               child: _LevelNode(
@@ -428,6 +477,96 @@ class _PlayTag extends StatelessWidget {
       ],
     );
   }
+}
+
+/// A gently-waving pennant flag marking a world's final (goal) level.
+class _GoalFlag extends StatelessWidget {
+  const _GoalFlag({required this.loop});
+  final Animation<double> loop;
+
+  @override
+  Widget build(BuildContext context) {
+    // Driven by the parent's per-frame rebuild.
+    final wave = math.sin(loop.value * 2 * math.pi);
+    return SizedBox(
+      width: 50,
+      height: 60,
+      child: Stack(
+        children: [
+          // Pole.
+          Positioned(
+            left: 8,
+            top: 4,
+            bottom: 0,
+            child: Container(
+              width: 5,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFFC79A6E), Color(0xFF8B5E3C)],
+                ),
+                borderRadius: BorderRadius.circular(3),
+              ),
+            ),
+          ),
+          // Pole knob.
+          const Positioned(
+            left: 6,
+            top: 0,
+            child: Icon(Icons.circle, size: 9, color: Color(0xFFFFC93C)),
+          ),
+          // Waving pennant with a star.
+          Positioned(
+            left: 11,
+            top: 5,
+            child: Transform(
+              alignment: Alignment.centerLeft,
+              transform: Matrix4.diagonal3Values(1 + wave * 0.08, 1.0, 1.0),
+              child: ClipPath(
+                clipper: _Pennant(),
+                child: Container(
+                  width: 36,
+                  height: 24,
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [Color(0xFFFFE08A), Color(0xFFFFB020)],
+                    ),
+                  ),
+                  child: const Align(
+                    alignment: Alignment(-0.5, 0),
+                    child: Text(
+                      '★',
+                      style: TextStyle(fontSize: 13, color: Colors.white),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Right-pointing swallowtail pennant shape.
+class _Pennant extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    return Path()
+      ..moveTo(0, 0)
+      ..lineTo(size.width, 0)
+      ..lineTo(size.width - 9, size.height / 2)
+      ..lineTo(size.width, size.height)
+      ..lineTo(0, size.height)
+      ..close();
+  }
+
+  @override
+  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
 }
 
 class _LevelNode extends StatelessWidget {

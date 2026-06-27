@@ -70,19 +70,19 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
     final total = state.progress.fold<int>(0, (s, v) => s + v);
     final maxStars = state.progress.length * 3;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 14, 20, 6),
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
       child: Row(
         children: [
           CandyButton(
             color: AppColors.pill,
             shadow: AppColors.softPinkShadow,
-            radius: 14,
+            radius: 16,
             depth: 4,
             padding: EdgeInsets.zero,
             onTap: () => Navigator.of(context).pop(),
             child: const SizedBox(
-              width: 44,
-              height: 44,
+              width: 46,
+              height: 46,
               child: Icon(
                 Icons.chevron_left_rounded,
                 color: AppColors.accent,
@@ -90,55 +90,97 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
               ),
             ),
           ),
-          const SizedBox(width: 12),
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Worlds',
-                  style: TextStyle(
-                    fontSize: 28,
-                    height: 1,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.heading,
+          const SizedBox(width: 10),
+          // White banner with title + a gold stars chip.
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.accent.withValues(alpha: 0.22),
+                    blurRadius: 12,
+                    offset: const Offset(0, 5),
                   ),
-                ),
-                Text(
-                  'Pick a world to play',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.muted,
+                ],
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ShaderMask(
+                          shaderCallback: (rect) => const LinearGradient(
+                            colors: [Color(0xFFFF7AB0), AppColors.accent],
+                          ).createShader(rect),
+                          child: const Text(
+                            'Worlds',
+                            style: TextStyle(
+                              fontSize: 26,
+                              height: 1,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 1),
+                        const Text(
+                          'Pick a world to play',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: AppColors.muted,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-            decoration: BoxDecoration(
-              color: AppColors.pill,
-              borderRadius: BorderRadius.circular(40),
-              boxShadow: const [
-                BoxShadow(color: AppColors.pillShadow, offset: Offset(0, 3)),
-              ],
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text('⭐', style: TextStyle(fontSize: 16)),
-                const SizedBox(width: 5),
-                Text(
-                  '$total / $maxStars',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.heading,
+                  const SizedBox(width: 8),
+                  // Gold stars chip.
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 7,
+                    ),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [Color(0xFFFFD76B), Color(0xFFFFB020)],
+                      ),
+                      borderRadius: BorderRadius.circular(40),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0xFFD77A1E),
+                          offset: Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text(
+                          '★',
+                          style: TextStyle(fontSize: 16, color: Colors.white),
+                        ),
+                        const SizedBox(width: 5),
+                        Text(
+                          '$total/$maxStars',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ],
