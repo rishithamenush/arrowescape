@@ -113,7 +113,13 @@ class ArrowEscapeGame extends FlameGame {
         _reportResult();
       });
     } else {
-      comp.playShake(controller.clearBlocked);
+      // Wrong tap — a heart was just lost; report game over after the shake.
+      comp.playShake(() {
+        controller.clearBlocked();
+        if (controller.status == BoardStatus.lost) {
+          onResolved(BoardStatus.lost);
+        }
+      });
     }
   }
 

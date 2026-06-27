@@ -64,8 +64,30 @@ class _GameScreenState extends State<GameScreen> {
     } else if (status == BoardStatus.stuck) {
       _resultShown = true;
       WidgetsBinding.instance.addPostFrameCallback((_) => _showStuck());
+    } else if (status == BoardStatus.lost) {
+      _resultShown = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) => _showGameOver());
     }
     if (mounted) setState(() {});
+  }
+
+  Future<void> _showGameOver() async {
+    await showGeneralDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: AppColors.overlay,
+      barrierLabel: 'gameover',
+      pageBuilder: (_, __, ___) => GameOverDialog(
+        onRetry: () {
+          Navigator.of(context).pop();
+          _restart();
+        },
+        onHome: () {
+          Navigator.of(context).pop();
+          Navigator.of(context).pop();
+        },
+      ),
+    );
   }
 
   void _finishLevel() {
@@ -211,7 +233,7 @@ class _GameScreenState extends State<GameScreen> {
           padding: const EdgeInsets.all(AppSpacing.lg),
           child: Column(
             children: [
-              _topBar(p.coins),
+              _topBar(),
               const SizedBox(height: AppSpacing.md),
               _statsRow(),
               const SizedBox(height: AppSpacing.md),
@@ -232,7 +254,7 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
-  Widget _topBar(int coins) {
+  Widget _topBar() {
     final title = widget.daily ? 'Daily Challenge' : 'Level $_currentLevelId';
     return Row(
       children: [
@@ -275,11 +297,7 @@ class _GameScreenState extends State<GameScreen> {
           ),
         ),
         const SizedBox(width: AppSpacing.sm),
-        StatPill(
-          icon: Icons.monetization_on_rounded,
-          label: '$coins',
-          color: AppColors.coin,
-        ),
+        HeartsBar(lives: _board.lives, maxLives: _board.maxLives),
       ],
     );
   }

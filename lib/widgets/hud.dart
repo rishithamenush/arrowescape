@@ -266,6 +266,93 @@ class StatPill extends StatelessWidget {
   }
 }
 
+/// A glossy pill of hearts showing remaining lives. Shakes and pops when a
+/// heart is lost so younger players clearly notice the wrong tap.
+class HeartsBar extends StatefulWidget {
+  const HeartsBar({super.key, required this.lives, required this.maxLives});
+
+  final int lives;
+  final int maxLives;
+
+  @override
+  State<HeartsBar> createState() => _HeartsBarState();
+}
+
+class _HeartsBarState extends State<HeartsBar>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _shake = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 380),
+  );
+
+  @override
+  void didUpdateWidget(covariant HeartsBar old) {
+    super.didUpdateWidget(old);
+    if (widget.lives < old.lives) _shake.forward(from: 0);
+  }
+
+  @override
+  void dispose() {
+    _shake.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final pill = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Colors.white, Color(0xFFEFF1FF)],
+        ),
+        borderRadius: BorderRadius.circular(40),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.danger.withValues(alpha: 0.30),
+            blurRadius: 12,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: List.generate(widget.maxLives, (i) {
+          final filled = i < widget.lives;
+          return Padding(
+            padding: EdgeInsets.only(right: i == widget.maxLives - 1 ? 0 : 4),
+            child: AnimatedScale(
+              scale: filled ? 1 : 0.78,
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeOutBack,
+              child: Icon(
+                filled ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                size: 20,
+                color: filled
+                    ? AppColors.danger
+                    : AppColors.textMuted.withValues(alpha: 0.6),
+              ),
+            ),
+          );
+        }),
+      ),
+    );
+
+    return AnimatedBuilder(
+      animation: _shake,
+      builder: (context, child) {
+        final v = _shake.value;
+        final dx = v == 0
+            ? 0.0
+            : (1 - v) * 7 * (((v * 14).floor()).isEven ? 1 : -1);
+        return Transform.translate(offset: Offset(dx, 0), child: child);
+      },
+      child: pill,
+    );
+  }
+}
+
 /// Circular glossy icon button used for back / settings / pause.
 class RoundIconButton extends StatelessWidget {
   const RoundIconButton({

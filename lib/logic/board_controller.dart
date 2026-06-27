@@ -3,22 +3,30 @@ import 'package:flutter/foundation.dart';
 import '../models/arrow.dart';
 import '../models/level.dart';
 
-enum BoardStatus { playing, won, stuck }
+enum BoardStatus { playing, won, stuck, lost }
 
 /// Holds the live board state for one level and implements the core rules:
-/// `canEscape`, `tapArrow`, win/stuck detection and `undo`.
+/// `canEscape`, `tapArrow`, win/stuck detection, lives and `undo`.
 class BoardController extends ChangeNotifier {
-  BoardController(this.level) {
+  BoardController(this.level, {this.maxLives = 5}) {
     _reset();
   }
 
   final LevelModel level;
 
+  /// Number of wrong taps allowed before the level is lost.
+  final int maxLives;
+
   late List<ArrowModel> arrows;
   int moves = 0;
+  late int lives;
   bool hintUsed = false;
   bool undoUsed = false;
   BoardStatus status = BoardStatus.playing;
+
+  /// True for one notify cycle right after a heart was just lost (for the UI
+  /// to play a "damage" reaction).
+  bool justLostLife = false;
 
   /// Id of the arrow currently animating off the board (for the view layer).
   String? escapingId;
@@ -32,6 +40,8 @@ class BoardController extends ChangeNotifier {
   void _reset() {
     arrows = level.freshArrows();
     moves = 0;
+    lives = maxLives;
+    justLostLife = false;
     hintUsed = false;
     undoUsed = false;
     status = BoardStatus.playing;
@@ -68,6 +78,7 @@ class BoardController extends ChangeNotifier {
   bool tapArrow(ArrowModel arrow) {
     if (status != BoardStatus.playing) return false;
 
+    justLostLife = false;
     if (canEscape(arrow)) {
       _pushHistory();
       escapingId = arrow.id;
@@ -78,7 +89,11 @@ class BoardController extends ChangeNotifier {
       notifyListeners();
       return true;
     } else {
+      // Wrong tap: shake and lose a heart.
       blockedId = arrow.id;
+      lives = (lives - 1).clamp(0, maxLives);
+      justLostLife = true;
+      if (lives <= 0) status = BoardStatus.lost;
       notifyListeners();
       return false;
     }
@@ -98,7 +113,11 @@ class BoardController extends ChangeNotifier {
   }
 
   void undo() {
-    if (_history.isEmpty || status == BoardStatus.won) return;
+    if (_history.isEmpty ||
+        status == BoardStatus.won ||
+        status == BoardStatus.lost) {
+      return;
+    }
     arrows = _history.removeLast();
     moves = (moves - 1).clamp(0, 1 << 30);
     undoUsed = true;
@@ -143,5 +162,8 @@ class BoardController extends ChangeNotifier {
     return stars;
   }
 
-  bool get canUndo => _history.isNotEmpty && status != BoardStatus.won;
+  bool get canUndo =>
+      _history.isNotEmpty &&
+      status != BoardStatus.won &&
+      status != BoardStatus.lost;
 }

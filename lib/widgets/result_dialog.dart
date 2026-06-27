@@ -132,6 +132,56 @@ class StuckDialog extends StatelessWidget {
   }
 }
 
+/// Game-over overlay shown when the player runs out of hearts.
+class GameOverDialog extends StatelessWidget {
+  const GameOverDialog({
+    super.key,
+    required this.onRetry,
+    required this.onHome,
+  });
+
+  final VoidCallback onRetry;
+  final VoidCallback onHome;
+
+  @override
+  Widget build(BuildContext context) {
+    return _PopupCard(
+      accent: AppColors.danger,
+      badgeIcon: Icons.heart_broken_rounded,
+      title: 'Out of Hearts!',
+      children: [
+        const SizedBox(height: AppSpacing.sm),
+        const Text(
+          'You ran out of hearts. Try the level again!',
+          textAlign: TextAlign.center,
+          style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+        ),
+        const SizedBox(height: AppSpacing.xl),
+        PrimaryButton(
+          label: 'Try Again',
+          icon: Icons.refresh_rounded,
+          onTap: onRetry,
+          expand: true,
+          color: AppColors.danger,
+        ),
+        const SizedBox(height: AppSpacing.md),
+        Row(
+          children: [
+            Expanded(
+              child: _SecondaryButton(
+                icon: Icons.home_rounded,
+                label: 'Home',
+                color: AppColors.primary,
+                onTap: onHome,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
 /// Shared popup chrome: a bouncing white card with a coloured header glow and
 /// a circular badge that overhangs the top edge.
 class _PopupCard extends StatelessWidget {

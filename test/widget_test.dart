@@ -129,6 +129,32 @@ void main() {
       expect(board.status, BoardStatus.won);
     });
 
+    test('a wrong tap costs a heart and running out loses the level', () {
+      final level = LevelModel(
+        id: 9,
+        rows: 3,
+        cols: 1,
+        targetMoves: 5,
+        arrows: [
+          ArrowModel(id: 'top', row: 0, col: 0, dir: ArrowDir.up),
+          ArrowModel(id: 'bottom', row: 1, col: 0, dir: ArrowDir.up),
+        ],
+      );
+      final board = BoardController(level, maxLives: 2);
+      // 'bottom' is blocked by 'top' — a wrong tap.
+      expect(board.tapArrow(board.arrowAt(1, 0)!), isFalse);
+      expect(board.lives, 1);
+      expect(board.status, BoardStatus.playing);
+      // Second wrong tap empties the hearts -> lost.
+      expect(board.tapArrow(board.arrowAt(1, 0)!), isFalse);
+      expect(board.lives, 0);
+      expect(board.status, BoardStatus.lost);
+      // Restart restores hearts.
+      board.restart();
+      expect(board.lives, 2);
+      expect(board.status, BoardStatus.playing);
+    });
+
     test('undo restores the previous state (non-winning move)', () {
       final level = LevelModel(
         id: 4,
