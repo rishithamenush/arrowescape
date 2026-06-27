@@ -1,15 +1,13 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 
 import '../core/theme.dart';
-import '../game/levels.dart';
+import '../game/sections.dart';
 import '../state/game_state.dart';
 import '../widgets/candy.dart';
-import 'game_screen.dart';
+import 'world_map_screen.dart';
 
-/// A Candy-Crush-style winding road map of levels: nodes sway left/right along
-/// a curving candy path, showing stars / locks, with the current level marked.
+/// The "Worlds" overview: a scrollable list of themed section cards, each
+/// showing progress, that opens into a winding road map.
 class LevelSelectScreen extends StatefulWidget {
   const LevelSelectScreen({super.key});
 
@@ -18,24 +16,20 @@ class LevelSelectScreen extends StatefulWidget {
 }
 
 class _LevelSelectScreenState extends State<LevelSelectScreen> {
-  static const double _spacing = 132;
-  static const double _topPad = 70;
-  static const double _botPad = 90;
-  static const double _node = 66;
-
   final ScrollController _scroll = ScrollController();
+  late final List<GameSection> _sections = buildSections();
 
   @override
   void initState() {
     super.initState();
-    // Centre the map on the player's current level once laid out.
+    // Scroll to the world the player is currently on.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || !_scroll.hasClients) return;
       final state = GameScope.read(context);
+      final current = state.unlocked ~/ kSectionSize;
+      const cardExtent = 124.0;
       final target =
-          _topPad +
-          state.unlocked * _spacing -
-          _scroll.position.viewportDimension / 2;
+          current * cardExtent - _scroll.position.viewportDimension / 3;
       _scroll.jumpTo(target.clamp(0, _scroll.position.maxScrollExtent));
     });
   }
@@ -57,38 +51,12 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
           children: [
             _header(state),
             Expanded(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final width = constraints.maxWidth;
-                  final n = kLevels.length;
-                  final amp = (width / 2 - _node / 2 - 18).clamp(0.0, 130.0);
-                  final centerX = width / 2;
-                  final points = <Offset>[
-                    for (var i = 0; i < n; i++)
-                      Offset(
-                        centerX + amp * math.sin(i * 0.9),
-                        _topPad + i * _spacing,
-                      ),
-                  ];
-                  final mapHeight = _topPad + (n - 1) * _spacing + _botPad;
-
-                  return SingleChildScrollView(
-                    controller: _scroll,
-                    child: SizedBox(
-                      width: width,
-                      height: mapHeight,
-                      child: Stack(
-                        children: [
-                          Positioned.fill(
-                            child: CustomPaint(painter: _RoadPainter(points)),
-                          ),
-                          for (var i = 0; i < n; i++)
-                            ..._nodeWidgets(context, state, i, points[i]),
-                        ],
-                      ),
-                    ),
-                  );
-                },
+              child: ListView.builder(
+                controller: _scroll,
+                padding: const EdgeInsets.fromLTRB(18, 6, 18, 24),
+                itemCount: _sections.length,
+                itemBuilder: (context, i) =>
+                    _SectionCard(section: _sections[i], state: state),
               ),
             ),
           ],
@@ -99,6 +67,7 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
 
   Widget _header(GameState state) {
     final total = state.progress.fold<int>(0, (s, v) => s + v);
+    final maxStars = state.progress.length * 3;
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
       child: Row(
@@ -122,7 +91,7 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
           ),
           const SizedBox(width: 12),
           const Text(
-            'Level Map',
+            'Worlds',
             style: TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.w700,
@@ -145,9 +114,9 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
                 const Text('⭐', style: TextStyle(fontSize: 16)),
                 const SizedBox(width: 4),
                 Text(
-                  '$total',
+                  '$total / $maxStars',
                   style: const TextStyle(
-                    fontSize: 16,
+                    fontSize: 14,
                     fontWeight: FontWeight.w700,
                     color: AppColors.heading,
                   ),
@@ -159,238 +128,191 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
       ),
     );
   }
-
-  List<Widget> _nodeWidgets(
-    BuildContext context,
-    GameState state,
-    int i,
-    Offset p,
-  ) {
-    final locked = !state.isUnlocked(i);
-    final completed = state.starsFor(i) > 0;
-    final current = i == state.unlocked && !locked;
-
-    return [
-      // Stars above completed nodes.
-      if (completed)
-        Positioned(
-          left: p.dx - 40,
-          top: p.dy - _node / 2 - 22,
-          width: 80,
-          child: _StarRow(stars: state.starsFor(i)),
-        ),
-      // Pulsing ring on the current level.
-      if (current)
-        Positioned(
-          left: p.dx - _node / 2 - 12,
-          top: p.dy - _node / 2 - 12,
-          child: const _PulseRing(size: _node + 24),
-        ),
-      Positioned(
-        left: p.dx - _node / 2,
-        top: p.dy - _node / 2,
-        child: _LevelNode(
-          index: i,
-          locked: locked,
-          current: current,
-          size: _node,
-          onTap: locked
-              ? null
-              : () => Navigator.of(
-                  context,
-                ).push(MaterialPageRoute(builder: (_) => GameScreen(level: i))),
-        ),
-      ),
-    ];
-  }
 }
 
-class _LevelNode extends StatelessWidget {
-  const _LevelNode({
-    required this.index,
-    required this.locked,
-    required this.current,
-    required this.size,
-    required this.onTap,
-  });
+class _SectionCard extends StatelessWidget {
+  const _SectionCard({required this.section, required this.state});
 
-  final int index;
-  final bool locked;
-  final bool current;
-  final double size;
-  final VoidCallback? onTap;
+  final GameSection section;
+  final GameState state;
 
   @override
   Widget build(BuildContext context) {
-    final gradient = locked
-        ? AppColors.lockedCard
-        : AppColors.levelCards[index % AppColors.levelCards.length];
-    final shadow = locked
-        ? AppColors.lockedShadow
-        : AppColors.levelShadow[index % AppColors.levelShadow.length];
+    final unlocked = state.isUnlocked(section.start);
+    var completed = 0;
+    var stars = 0;
+    for (var l = section.start; l <= section.end; l++) {
+      if (state.starsFor(l) > 0) completed++;
+      stars += state.starsFor(l);
+    }
+    final isCurrent =
+        state.unlocked >= section.start && state.unlocked <= section.end;
+    final progress = section.count == 0 ? 0.0 : completed / section.count;
 
-    return CandyButton(
-      gradient: gradient,
-      shadow: shadow,
-      radius: size / 2,
-      depth: 6,
-      padding: EdgeInsets.zero,
-      onTap: onTap ?? () {},
-      child: SizedBox(
-        width: size,
-        height: size,
-        child: Center(
-          child: locked
-              ? const Icon(Icons.lock_rounded, color: Colors.white, size: 26)
-              : Text(
-                  '${index + 1}',
-                  style: TextStyle(
-                    fontSize: current ? 30 : 26,
-                    height: 1,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                    shadows: const [
-                      Shadow(color: Color(0x33000000), offset: Offset(0, 2)),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: CandyButton(
+        gradient: unlocked ? section.gradient : AppColors.lockedCard,
+        shadow: unlocked ? section.shadow : AppColors.lockedShadow,
+        radius: 26,
+        depth: 7,
+        padding: const EdgeInsets.all(16),
+        onTap: unlocked
+            ? () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => WorldMapScreen(section: section),
+                ),
+              )
+            : () {},
+        child: Row(
+          children: [
+            // Emoji badge.
+            Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.25),
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: Center(
+                child: unlocked
+                    ? Text(section.emoji, style: const TextStyle(fontSize: 30))
+                    : const Icon(
+                        Icons.lock_rounded,
+                        color: Colors.white,
+                        size: 28,
+                      ),
+              ),
+            ),
+            const SizedBox(width: 14),
+            // Title + progress.
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          section.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 19,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                      if (isCurrent)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.3),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Text(
+                            'PLAYING',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.5,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
                     ],
                   ),
+                  const SizedBox(height: 2),
+                  Text(
+                    unlocked
+                        ? 'Levels ${section.start + 1}–${section.end + 1}'
+                        : 'Reach level ${section.start + 1} to unlock',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.white.withValues(alpha: 0.85),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  // Progress bar.
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Stack(
+                            children: [
+                              Container(
+                                height: 8,
+                                color: Colors.white.withValues(alpha: 0.25),
+                              ),
+                              FractionallySizedBox(
+                                widthFactor: progress,
+                                child: Container(
+                                  height: 8,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '$completed/${section.count}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (unlocked)
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text(
+                        '★',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Color(0xFFFFE08A),
+                        ),
+                      ),
+                      const SizedBox(width: 2),
+                      Text(
+                        '$stars',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                const SizedBox(height: 6),
+                Icon(
+                  unlocked ? Icons.chevron_right_rounded : Icons.lock_rounded,
+                  color: Colors.white.withValues(alpha: 0.9),
+                  size: 26,
                 ),
+              ],
+            ),
+          ],
         ),
       ),
     );
   }
-}
-
-class _StarRow extends StatelessWidget {
-  const _StarRow({required this.stars});
-  final int stars;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(3, (i) {
-        final earned = i < stars;
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 1),
-          child: Transform.translate(
-            offset: Offset(0, i == 1 ? -3 : 0),
-            child: Text(
-              earned ? '★' : '✩',
-              style: TextStyle(
-                fontSize: 18,
-                color: earned
-                    ? const Color(0xFFFFCE3D)
-                    : const Color(0xFFD9C7E0),
-              ),
-            ),
-          ),
-        );
-      }),
-    );
-  }
-}
-
-/// Soft pulsing ring drawn behind the current level node.
-class _PulseRing extends StatefulWidget {
-  const _PulseRing({required this.size});
-  final double size;
-
-  @override
-  State<_PulseRing> createState() => _PulseRingState();
-}
-
-class _PulseRingState extends State<_PulseRing>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _c = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 1300),
-  )..repeat();
-
-  @override
-  void dispose() {
-    _c.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return IgnorePointer(
-      child: AnimatedBuilder(
-        animation: _c,
-        builder: (context, _) {
-          final t = _c.value;
-          return Opacity(
-            opacity: (1 - t) * 0.7,
-            child: Transform.scale(
-              scale: 0.85 + t * 0.4,
-              child: Container(
-                width: widget.size,
-                height: widget.size,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.accent, width: 4),
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-/// Draws the winding candy road connecting the level nodes.
-class _RoadPainter extends CustomPainter {
-  _RoadPainter(this.points);
-  final List<Offset> points;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (points.length < 2) return;
-    final path = Path()..moveTo(points.first.dx, points.first.dy);
-    for (var i = 0; i < points.length - 1; i++) {
-      final a = points[i], b = points[i + 1];
-      final midY = (a.dy + b.dy) / 2;
-      path.cubicTo(a.dx, midY, b.dx, midY, b.dx, b.dy);
-    }
-
-    // Road outline + fill.
-    canvas.drawPath(
-      path,
-      Paint()
-        ..color = const Color(0xFFE0B98C)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 30
-        ..strokeCap = StrokeCap.round
-        ..strokeJoin = StrokeJoin.round,
-    );
-    canvas.drawPath(
-      path,
-      Paint()
-        ..color = const Color(0xFFF6DEBE)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 24
-        ..strokeCap = StrokeCap.round
-        ..strokeJoin = StrokeJoin.round,
-    );
-
-    // Dashed white centre line.
-    final dashPaint = Paint()
-      ..color = const Color(0xCCFFFFFF)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 4
-      ..strokeCap = StrokeCap.round;
-    for (final metric in path.computeMetrics()) {
-      var d = 0.0;
-      const on = 10.0, off = 14.0;
-      while (d < metric.length) {
-        final seg = metric.extractPath(d, math.min(d + on, metric.length));
-        canvas.drawPath(seg, dashPaint);
-        d += on + off;
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _RoadPainter old) => old.points != points;
 }
