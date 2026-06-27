@@ -1,248 +1,159 @@
 import 'package:flutter/material.dart';
 
 import '../core/theme.dart';
-import '../logic/level_loader.dart';
+import '../game/levels.dart';
 import '../state/game_state.dart';
-import '../widgets/app_background.dart';
-import '../widgets/hud.dart';
+import '../widgets/candy.dart';
 import 'game_screen.dart';
 
-/// Scrollable, world-grouped grid of levels showing lock / star state.
 class LevelSelectScreen extends StatelessWidget {
   const LevelSelectScreen({super.key});
 
-  static const _worldNames = ['Meadow', 'Desert', 'Glacier', 'Volcano'];
-  static const _worldColors = [
-    AppColors.success,
-    AppColors.warning,
-    AppColors.primary,
-    AppColors.danger,
-  ];
-
   @override
   Widget build(BuildContext context) {
     final state = GameScope.of(context);
-    final p = state.progress;
 
     return Scaffold(
-      body: AppBackground(
-        child: Column(
-          children: [
-            _Header(coins: p.coins, totalStars: p.totalStars),
-            Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.lg,
-                  0,
-                  AppSpacing.lg,
-                  AppSpacing.xl,
-                ),
-                itemCount: LevelLoader.worldCount,
-                itemBuilder: (context, world) {
-                  final start = world * LevelLoader.worldSize + 1;
-                  return _WorldSection(
-                    title: _worldNames[world % _worldNames.length],
-                    color: _worldColors[world % _worldColors.length],
-                    startId: start,
-                    count: LevelLoader.worldSize,
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _Header extends StatelessWidget {
-  const _Header({required this.coins, required this.totalStars});
-  final int coins;
-  final int totalStars;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      child: Row(
-        children: [
-          RoundIconButton(
-            icon: Icons.arrow_back_rounded,
-            onTap: () => Navigator.of(context).pop(),
-          ),
-          const SizedBox(width: AppSpacing.md),
-          const Expanded(
-            child: Text(
-              'Levels',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w900,
-                color: AppColors.textPrimary,
-              ),
-            ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          StatPill(
-            icon: Icons.star_rounded,
-            label: '$totalStars',
-            color: AppColors.warning,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _WorldSection extends StatelessWidget {
-  const _WorldSection({
-    required this.title,
-    required this.color,
-    required this.startId,
-    required this.count,
-  });
-
-  final String title;
-  final Color color;
-  final int startId;
-  final int count;
-
-  @override
-  Widget build(BuildContext context) {
-    final state = GameScope.of(context);
-    final p = state.progress;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-          child: Row(
+      body: CandyBackground(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(22, 24, 22, 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(width: 6, height: 22, color: color),
-              const SizedBox(width: AppSpacing.sm),
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                  color: color,
+              Row(
+                children: [
+                  CandyButton(
+                    color: AppColors.pill,
+                    shadow: AppColors.softPinkShadow,
+                    radius: 14,
+                    depth: 4,
+                    padding: EdgeInsets.zero,
+                    onTap: () => Navigator.of(context).pop(),
+                    child: const SizedBox(
+                      width: 44,
+                      height: 44,
+                      child: Icon(
+                        Icons.chevron_left_rounded,
+                        color: AppColors.accent,
+                        size: 30,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  const Text(
+                    'Select Level',
+                    style: TextStyle(
+                      fontSize: 30,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.heading,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Expanded(
+                child: GridView.builder(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 16,
+                    crossAxisSpacing: 16,
+                    childAspectRatio: 1,
+                  ),
+                  itemCount: kLevels.length,
+                  itemBuilder: (context, i) => _LevelCard(
+                    index: i,
+                    locked: !state.isUnlocked(i),
+                    stars: state.starsFor(i),
+                  ),
                 ),
               ),
             ],
           ),
         ),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          // Max-extent delegate adapts the column count to the screen width
-          // (more columns on tablets, fewer on small phones).
-          gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-            maxCrossAxisExtent: 76,
-            mainAxisSpacing: AppSpacing.md,
-            crossAxisSpacing: AppSpacing.md,
-            childAspectRatio: 1,
-          ),
-          itemCount: count,
-          itemBuilder: (context, i) {
-            final id = startId + i;
-            return _LevelTile(
-              id: id,
-              color: color,
-              stars: p.starsFor(id),
-              unlocked: p.isUnlocked(id),
-            );
-          },
-        ),
-      ],
-    );
-  }
-}
-
-class _LevelTile extends StatelessWidget {
-  const _LevelTile({
-    required this.id,
-    required this.color,
-    required this.stars,
-    required this.unlocked,
-  });
-
-  final int id;
-  final Color color;
-  final int stars;
-  final bool unlocked;
-
-  @override
-  Widget build(BuildContext context) {
-    final completed = stars > 0;
-    return GestureDetector(
-      onTap: unlocked
-          ? () => Navigator.of(
-              context,
-            ).push(MaterialPageRoute(builder: (_) => GameScreen(levelId: id)))
-          : null,
-      child: Container(
-        decoration: BoxDecoration(
-          color: unlocked
-              ? (completed ? color.withValues(alpha: 0.22) : AppColors.surface)
-              : AppColors.surface.withValues(alpha: 0.4),
-          borderRadius: BorderRadius.circular(AppSpacing.radius),
-          border: Border.all(
-            color: unlocked ? color.withValues(alpha: 0.5) : AppColors.hairline,
-          ),
-        ),
-        child: unlocked
-            ? FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Padding(
-                  padding: const EdgeInsets.all(6),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        '$id',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      _MiniStars(stars: stars, color: color),
-                    ],
-                  ),
-                ),
-              )
-            : const Icon(
-                Icons.lock_rounded,
-                color: AppColors.textMuted,
-                size: 22,
-              ),
       ),
     );
   }
 }
 
-class _MiniStars extends StatelessWidget {
-  const _MiniStars({required this.stars, required this.color});
+class _LevelCard extends StatelessWidget {
+  const _LevelCard({
+    required this.index,
+    required this.locked,
+    required this.stars,
+  });
+
+  final int index;
+  final bool locked;
   final int stars;
-  final Color color;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(3, (i) {
-        final earned = i < stars;
-        return Icon(
-          earned ? Icons.star_rounded : Icons.star_outline_rounded,
-          size: 11,
-          color: earned ? AppColors.warning : AppColors.textMuted,
-        );
-      }),
+    final gradient = locked
+        ? AppColors.lockedCard
+        : AppColors.levelCards[index % AppColors.levelCards.length];
+    final shadow = locked
+        ? AppColors.lockedShadow
+        : AppColors.levelShadow[index % AppColors.levelShadow.length];
+    final starsText = stars > 0
+        ? '★★★'.substring(0, stars) + '✩✩✩'.substring(0, 3 - stars)
+        : '✩✩✩';
+
+    return CandyButton(
+      gradient: gradient,
+      shadow: shadow,
+      radius: 24,
+      depth: 6,
+      padding: EdgeInsets.zero,
+      onTap: locked
+          ? () {}
+          : () => Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (_) => GameScreen(level: index))),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text(
+                'LEVEL',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 2,
+                  color: Color(0xCCFFFFFF),
+                ),
+              ),
+              Text(
+                '${index + 1}',
+                style: const TextStyle(
+                  fontSize: 48,
+                  height: 1,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+              Text(
+                starsText,
+                style: const TextStyle(
+                  fontSize: 18,
+                  letterSpacing: 3,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+          if (locked)
+            const Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(color: Color(0x8C3C2846)),
+                child: Center(
+                  child: Text('🔒', style: TextStyle(fontSize: 34)),
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

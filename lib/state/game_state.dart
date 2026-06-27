@@ -1,105 +1,50 @@
 import 'package:flutter/widgets.dart';
 
-import '../models/player_progress.dart';
+import '../core/audio_service.dart';
+import '../game/levels.dart';
 
-/// App-wide player state. Kept package-free (plain [ChangeNotifier] +
-/// [InheritedNotifier]) so the UI layer builds without extra dependencies;
-/// can be replaced with Riverpod later without touching screen code.
+/// App-wide progress + settings for Bubble Pop. Kept package-free (plain
+/// [ChangeNotifier] + [InheritedNotifier]); wire to shared_preferences later.
 class GameState extends ChangeNotifier {
-  GameState({PlayerProgress? progress})
-    : progress = progress ?? PlayerProgress();
+  /// Highest unlocked level index (0-based).
+  int unlocked = 0;
 
-  final PlayerProgress progress;
+  /// Best stars earned per level index (0..3).
+  final List<int> progress = List<int>.filled(kLevels.length, 0);
 
-  void recordResult({required int levelId, required int stars}) {
-    final previous = progress.starsFor(levelId);
-    if (stars > previous) {
-      progress.levelStars[levelId] = stars;
+  bool soundOn = true;
+
+  bool isUnlocked(int i) => i <= unlocked;
+  int starsFor(int i) => i >= 0 && i < progress.length ? progress[i] : 0;
+
+  void recordWin({required int level, required int stars}) {
+    if (level >= 0 && level < progress.length) {
+      progress[level] = stars > progress[level] ? stars : progress[level];
     }
-    // Reward coins for first-time and improved completions.
-    if (stars > previous) {
-      progress.coins += 20 + stars * 10;
+    final nextLevel = level + 1;
+    if (nextLevel < kLevels.length && nextLevel > unlocked) {
+      unlocked = nextLevel;
     }
-    if (levelId == progress.currentLevel && levelId > 0) {
-      progress.currentLevel = levelId + 1;
-    }
-    notifyListeners();
-  }
-
-  bool spendCoins(int amount) {
-    if (progress.coins < amount) return false;
-    progress.coins -= amount;
-    notifyListeners();
-    return true;
-  }
-
-  void addCoins(int amount) {
-    progress.coins += amount;
-    notifyListeners();
-  }
-
-  void addHints(int amount) {
-    progress.hints += amount;
-    notifyListeners();
-  }
-
-  void addUndos(int amount) {
-    progress.undos += amount;
-    notifyListeners();
-  }
-
-  bool useHint() {
-    if (progress.hints <= 0) return false;
-    progress.hints--;
-    notifyListeners();
-    return true;
-  }
-
-  bool useUndo() {
-    if (progress.undos <= 0) return false;
-    progress.undos--;
-    notifyListeners();
-    return true;
-  }
-
-  void setArrowSkin(int index) {
-    progress.arrowSkin = index;
-    notifyListeners();
-  }
-
-  void setBoardTheme(int index) {
-    progress.boardTheme = index;
     notifyListeners();
   }
 
   void toggleSound() {
-    progress.soundOn = !progress.soundOn;
-    notifyListeners();
-  }
-
-  void toggleMusic() {
-    progress.musicOn = !progress.musicOn;
-    notifyListeners();
-  }
-
-  void toggleVibration() {
-    progress.vibrationOn = !progress.vibrationOn;
+    soundOn = !soundOn;
+    AudioService.instance.enabled = soundOn;
     notifyListeners();
   }
 }
 
-/// Inherited access to [GameState] from anywhere in the widget tree.
 class GameScope extends InheritedNotifier<GameState> {
   const GameScope({super.key, required GameState state, required super.child})
     : super(notifier: state);
 
   static GameState of(BuildContext context) {
     final scope = context.dependOnInheritedWidgetOfExactType<GameScope>();
-    assert(scope != null, 'GameScope not found in widget tree');
+    assert(scope != null, 'GameScope not found');
     return scope!.notifier!;
   }
 
-  /// Read without subscribing to rebuilds (for callbacks).
   static GameState read(BuildContext context) {
     final scope =
         context.getElementForInheritedWidgetOfExactType<GameScope>()?.widget

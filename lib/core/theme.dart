@@ -1,107 +1,94 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-/// Bright, playful design system tuned for kids — candy colors, big rounded
-/// shapes, soft colored shadows and a friendly rounded font.
+/// Candy-arcade design tokens for Bubble Pop.
 class AppColors {
   AppColors._();
 
-  // Cheerful sky gradient used behind every screen.
-  static const Color bgTop = Color(0xFF7CC8FF); // sky blue
-  static const Color bgBottom = Color(0xFFC9A9FF); // soft purple
-
-  // Card / surface
-  static const Color surface = Color(0xFFFFFFFF);
-  static const Color surfaceAlt = Color(0xFFF3F5FF);
-  static const Color hairline = Color(0x141B1B3A);
-  static const Color overlay = Color(0x802A1A66);
-
-  // Accents (vivid + friendly)
-  static const Color primary = Color(0xFF5B7CFA);
-  static const Color primaryDark = Color(0xFF3F5BE0);
-  static const Color secondary = Color(0xFFA45EFF);
-  static const Color success = Color(0xFF22C77B);
-  static const Color warning = Color(0xFFFFB020);
-  static const Color danger = Color(0xFFFF5A7E);
-  static const Color coin = Color(0xFFFFC93C);
-
-  // Text (dark on light)
-  static const Color textPrimary = Color(0xFF2B2D55);
-  static const Color textSecondary = Color(0xFF6E7191);
-  static const Color textMuted = Color(0xFFAEB0C8);
-  static const Color onColor = Color(0xFFFFFFFF);
-
-  /// Candy arrow palette. 0 is the default friendly blue.
-  static const List<Color> arrowColors = <Color>[
-    Color(0xFF54A0FF), // blue
-    Color(0xFFFF6B6B), // red
-    Color(0xFF1DD1A1), // green
-    Color(0xFFFEC130), // yellow
-    Color(0xFFA55EEA), // purple
-    Color(0xFFFF6BCB), // pink
-    Color(0xFFFF9F43), // orange
+  // App background gradient.
+  static const List<Color> bg = [
+    Color(0xFFFFE3F6),
+    Color(0xFFFFE9E3),
+    Color(0xFFE7ECFF),
+    Color(0xFFDFF5FF),
   ];
 
-  static Color arrowColor(int index) => arrowColors[index % arrowColors.length];
+  // Text.
+  static const Color heading = Color(0xFF5A3A6E);
+  static const Color body = Color(0xFF7A5A8E);
+  static const Color muted = Color(0xFF9A86AB);
+  static const Color label = Color(0xFFB07DA0);
+  static const Color accent = Color(0xFFFF4D8D);
+  static const Color accent2 = Color(0xFFFF5C97);
+
+  // Candy button families: [light, dark(shadow)].
+  static const Color pink = Color(0xFFFF4D97);
+  static const Color pinkLight = Color(0xFFFF8FC4);
+  static const Color pinkShadow = Color(0xFFD62F76);
+  static const Color mint = Color(0xFF2FC7A6);
+  static const Color mintLight = Color(0xFF7BE0C8);
+  static const Color mintShadow = Color(0xFF1B9D80);
+  static const Color softPink = Color(0xFFFFE7F1);
+  static const Color softPinkShadow = Color(0xFFFFC9DE);
+  static const Color lavender = Color(0xFFEFE9F5);
+  static const Color lavenderShadow = Color(0xFFD8CEE4);
+  static const Color amber = Color(0xFFFF9A3D);
+  static const Color amberLight = Color(0xFFFFD76B);
+  static const Color amberShadow = Color(0xFFD77A1E);
+
+  // White surfaces.
+  static const Color pill = Color(0xCCFFFFFF);
+  static const Color barButton = Color(0xD0FFFFFF);
+  static const Color pillShadow = Color(0x40AA78A0);
+
+  // Level card gradients [top, bottom] + shadow.
+  static const List<List<Color>> levelCards = [
+    [Color(0xFFFF9EC1), Color(0xFFFF5C97)],
+    [Color(0xFFFFD76B), Color(0xFFFF9A3D)],
+    [Color(0xFF7FE0F0), Color(0xFF2FB6D6)],
+    [Color(0xFF9BE8B5), Color(0xFF3DDC84)],
+  ];
+  static const List<Color> levelShadow = [
+    Color(0xFFD62F76),
+    Color(0xFFD77A1E),
+    Color(0xFF1F8FB0),
+    Color(0xFF1EA65C),
+  ];
+  static const List<Color> lockedCard = [Color(0xFFCDBCD8), Color(0xFFA892B8)];
+  static const Color lockedShadow = Color(0xFF8C7699);
 }
 
 class AppSpacing {
   AppSpacing._();
-  static const double xs = 4;
   static const double sm = 8;
   static const double md = 16;
   static const double lg = 24;
-  static const double xl = 32;
-  static const double xxl = 48;
-
-  static const double radius = 22;
-  static const double radiusLg = 32;
 }
 
 class AppTheme {
   AppTheme._();
 
-  static ThemeData get playful {
+  static ThemeData get theme {
     final base = ThemeData(useMaterial3: true, brightness: Brightness.light);
-    // Baloo 2 — super rounded and playful; perfect for a children's game.
-    final textTheme = GoogleFonts.baloo2TextTheme(base.textTheme).apply(
-      bodyColor: AppColors.textPrimary,
-      displayColor: AppColors.textPrimary,
-    );
+    final textTheme = GoogleFonts.fredokaTextTheme(
+      base.textTheme,
+    ).apply(bodyColor: AppColors.heading, displayColor: AppColors.heading);
     return base.copyWith(
-      scaffoldBackgroundColor: AppColors.bgTop,
-      colorScheme: const ColorScheme.light(
-        primary: AppColors.primary,
-        secondary: AppColors.secondary,
-        surface: AppColors.surface,
-        error: AppColors.danger,
-      ),
+      scaffoldBackgroundColor: AppColors.bg.first,
       textTheme: textTheme,
-      iconTheme: const IconThemeData(color: AppColors.textPrimary),
-      splashColor: AppColors.primary.withValues(alpha: 0.12),
+      colorScheme: base.colorScheme.copyWith(
+        primary: AppColors.accent,
+        secondary: AppColors.mint,
+      ),
+      splashFactory: NoSplash.splashFactory,
       highlightColor: Colors.transparent,
-    );
-  }
-
-  /// Soft, colored card with a playful drop shadow.
-  static BoxDecoration card({
-    Color? color,
-    double radius = AppSpacing.radius,
-    Color? glow,
-  }) {
-    final shadow = (glow ?? AppColors.primary).withValues(alpha: 0.18);
-    return BoxDecoration(
-      color: color ?? AppColors.surface,
-      borderRadius: BorderRadius.circular(radius),
-      boxShadow: [
-        BoxShadow(color: shadow, blurRadius: 18, offset: const Offset(0, 8)),
-      ],
     );
   }
 
   static const LinearGradient backgroundGradient = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
-    colors: [AppColors.bgTop, AppColors.bgBottom],
+    colors: AppColors.bg,
+    stops: [0, 0.3, 0.65, 1],
   );
 }

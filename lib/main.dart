@@ -1,24 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'core/audio_service.dart';
 import 'core/theme.dart';
-import 'screens/splash_screen.dart';
+import 'screens/home_screen.dart';
 import 'state/game_state.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-  runApp(const ArrowEscapeApp());
+  AudioService.instance.preload();
+  runApp(const BubblePopApp());
 }
 
-class ArrowEscapeApp extends StatefulWidget {
-  const ArrowEscapeApp({super.key});
+class BubblePopApp extends StatefulWidget {
+  const BubblePopApp({super.key});
 
   @override
-  State<ArrowEscapeApp> createState() => _ArrowEscapeAppState();
+  State<BubblePopApp> createState() => _BubblePopAppState();
 }
 
-class _ArrowEscapeAppState extends State<ArrowEscapeApp> {
+class _BubblePopAppState extends State<BubblePopApp> {
   final GameState _state = GameState();
 
   @override
@@ -29,21 +31,18 @@ class _ArrowEscapeAppState extends State<ArrowEscapeApp> {
 
   @override
   Widget build(BuildContext context) {
-    // GameScope rebuilds dependents whenever GameState notifies.
     return GameScope(
       state: _state,
       child: MaterialApp(
-        title: 'Arrow Escape',
+        title: 'Bubble Pop',
         debugShowCheckedModeBanner: false,
-        theme: AppTheme.playful,
-        // Clamp the OS text-scale so very large/small accessibility settings
-        // still honour the user's preference without shattering layouts.
+        theme: AppTheme.theme,
         builder: (context, child) => MediaQuery.withClampedTextScaling(
           minScaleFactor: 0.85,
-          maxScaleFactor: 1.3,
+          maxScaleFactor: 1.2,
           child: child!,
         ),
-        home: const SplashScreen(),
+        home: const HomeScreen(),
       ),
     );
   }
