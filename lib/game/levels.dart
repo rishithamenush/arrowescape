@@ -16,9 +16,11 @@ class LevelConfig {
   final int shots;
 }
 
-const List<LevelConfig> kLevels = [
-  LevelConfig(rows: 4, colors: 4, shots: 18),
-  LevelConfig(rows: 5, colors: 4, shots: 18),
-  LevelConfig(rows: 6, colors: 5, shots: 17),
-  LevelConfig(rows: 7, colors: 6, shots: 16),
-];
+/// The full level progression. Difficulty ramps up: more pre-filled rows, more
+/// colours and gradually fewer moves. Plenty of stops for the road map.
+final List<LevelConfig> kLevels = List<LevelConfig>.generate(15, (i) {
+  final rows = (4 + i ~/ 2).clamp(4, 10);
+  final colors = (4 + i ~/ 4).clamp(4, 6);
+  final shots = (18 - i ~/ 3).clamp(10, 18);
+  return LevelConfig(rows: rows, colors: colors, shots: shots);
+});
