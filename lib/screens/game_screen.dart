@@ -226,6 +226,7 @@ class _GameScreenState extends State<GameScreen> {
               // Reward popups ("Sweet!", "Combo!").
               if (_praises.isNotEmpty)
                 Positioned.fill(
+                  key: const ValueKey('praises'),
                   child: IgnorePointer(
                     child: Align(
                       alignment: const Alignment(0, -0.32),
@@ -587,8 +588,9 @@ class _GameScreenState extends State<GameScreen> {
   );
 
   // ---------- overlays ----------
-  Widget _scrim({required Widget child}) {
+  Widget _scrim({Key? key, required Widget child}) {
     return Positioned.fill(
+      key: key,
       child: ColoredBox(
         color: const Color(0x803C2846),
         child: Center(
@@ -623,6 +625,7 @@ class _GameScreenState extends State<GameScreen> {
   );
 
   Widget _pauseOverlay() => _scrim(
+    key: const ValueKey('pause'),
     child: _card(
       children: [
         const Text(
@@ -664,6 +667,7 @@ class _GameScreenState extends State<GameScreen> {
   Widget _winOverlay() {
     final hasNext = _level + 1 < kLevels.length;
     return _scrim(
+      key: const ValueKey('win'),
       child: _card(
         children: [
           const Text(
@@ -752,6 +756,7 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   Widget _loseOverlay() => _scrim(
+    key: const ValueKey('lose'),
     child: _card(
       children: [
         const Text('😣', style: TextStyle(fontSize: 46)),
