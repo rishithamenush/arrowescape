@@ -9,7 +9,7 @@ import 'state/game_state.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-  AudioService.instance.preload();
+  AudioService.instance.init();
   runApp(const BubblePopApp());
 }
 

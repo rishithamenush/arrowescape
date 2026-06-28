@@ -138,6 +138,13 @@ class _GameScreenState extends State<GameScreen> {
         _winStars = stars;
         _phase = _Phase.win;
       });
+      // Play a little star chime for each star earned, timed with the popup.
+      for (var i = 0; i < stars; i++) {
+        Future.delayed(
+          Duration(milliseconds: 450 + i * 350),
+          () => AudioService.instance.play('star'),
+        );
+      }
     });
   }
 

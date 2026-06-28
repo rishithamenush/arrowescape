@@ -30,7 +30,7 @@ class GameState extends ChangeNotifier {
 
   void toggleSound() {
     soundOn = !soundOn;
-    AudioService.instance.enabled = soundOn;
+    AudioService.instance.setEnabled(soundOn);
     notifyListeners();
   }
 }

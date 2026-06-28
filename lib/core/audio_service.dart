@@ -1,18 +1,19 @@
 import 'package:flame_audio/flame_audio.dart';
 
-/// Plays short sound effects for the game, gated on the user's sound setting.
-///
-/// Audio files are expected under `assets/audio/` (declared in pubspec). Calls
-/// are wrapped so a missing file never crashes the game — drop the real `.mp3`
-/// files in later and they start playing automatically.
+/// Central audio: preloaded low-latency sound effects with per-sound volumes,
+/// plus looping background music. A single [enabled] flag (driven by the
+/// in-game sound toggle) controls both SFX and music.
 class AudioService {
   AudioService._();
   static final AudioService instance = AudioService._();
 
-  bool enabled = true;
+  bool _enabled = true;
+  bool get enabled => _enabled;
 
-  /// Maps logical SFX names to asset filenames.
-  static const Map<String, String> _files = {
+  bool _ready = false;
+
+  /// Logical name -> asset filename (under `assets/audio/`).
+  static const Map<String, String> _sfx = {
     'shoot': 'shoot.mp3',
     'snap': 'snap.mp3',
     'pop': 'pop.mp3',
@@ -21,28 +22,77 @@ class AudioService {
     'win': 'win.mp3',
     'lose': 'lose.mp3',
     'tap': 'tap.mp3',
+    'star': 'star.mp3',
   };
 
-  /// Best-effort preload; silently ignores files that aren't present yet.
-  Future<void> preload() async {
+  static const String _music = 'music_loop.mp3';
+
+  /// Per-sound playback volume (0..1).
+  static const Map<String, double> _volume = {
+    'shoot': 0.45,
+    'snap': 0.45,
+    'pop': 0.7,
+    'combo': 0.85,
+    'bomb': 0.9,
+    'win': 0.95,
+    'lose': 0.8,
+    'tap': 0.5,
+    'star': 0.85,
+  };
+
+  static const double _musicVolume = 0.32;
+
+  /// Preloads every clip into the cache (so the first play has no lag) and
+  /// starts the background music. Safe to call once at startup.
+  Future<void> init() async {
     try {
-      await FlameAudio.audioCache.loadAll(_files.values.toList());
+      FlameAudio.bgm.initialize();
+      await FlameAudio.audioCache.loadAll([..._sfx.values, _music]);
+      _ready = true;
+      await startMusic();
     } catch (_) {
-      // Assets not bundled yet — fine, plays become no-ops.
+      // Missing/corrupt assets must never crash the game.
     }
   }
 
+  /// Plays a one-shot sound effect by logical [name].
   void play(String name) {
-    if (!enabled) return;
-    final file = _files[name];
+    if (!_enabled || !_ready) return;
+    final file = _sfx[name];
     if (file == null) return;
-    _safePlay(file);
+    _safePlay(file, _volume[name] ?? 0.7);
   }
 
-  // Fire-and-forget; swallow errors for assets that aren't bundled yet.
-  Future<void> _safePlay(String file) async {
+  Future<void> _safePlay(String file, double volume) async {
     try {
-      await FlameAudio.play(file);
+      await FlameAudio.play(file, volume: volume);
     } catch (_) {}
+  }
+
+  // ---------- background music ----------
+  Future<void> startMusic() async {
+    if (!_enabled || !_ready) return;
+    if (FlameAudio.bgm.isPlaying) return;
+    try {
+      await FlameAudio.bgm.play(_music, volume: _musicVolume);
+    } catch (_) {}
+  }
+
+  void stopMusic() {
+    try {
+      FlameAudio.bgm.stop();
+    } catch (_) {}
+  }
+
+  // ---------- master toggle ----------
+  void setEnabled(bool on) {
+    _enabled = on;
+    if (on) {
+      startMusic();
+    } else {
+      try {
+        FlameAudio.bgm.pause();
+      } catch (_) {}
+    }
   }
 }
