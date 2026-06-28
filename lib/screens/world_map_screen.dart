@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/material.dart';
 
@@ -406,12 +407,14 @@ class _WorldMapScreenState extends State<WorldMapScreen>
       if (completed) {
         widgets.add(
           Positioned(
-            left: p.dx - 40,
-            top: p.dy - _node / 2 - 22,
-            width: 80,
+            left: p.dx - 60,
+            top: p.dy - _node / 2 - 26,
+            width: 120,
             child: Opacity(
               opacity: appear,
-              child: _StarRow(stars: state.starsFor(global), loop: _loop),
+              child: Align(
+                child: _StarRow(stars: state.starsFor(global), loop: _loop),
+              ),
             ),
           ),
         );
@@ -665,51 +668,122 @@ class _StarRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // A white pill behind the stars so they stay highlighted against the map.
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.12),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
+    // Responsive scale: sizes grow/shrink gently with the screen width so the
+    // badge looks right on small phones and large tablets alike.
+    final scale = (MediaQuery.sizeOf(context).width / 390).clamp(0.85, 1.3);
+    final radius = 16.0 * scale;
+
+    // A frosted-glass badge with a little pointer tail, so the stars read as a
+    // tooltip "rating" floating over the level node.
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        DecoratedBox(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(radius),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.accent.withValues(alpha: 0.22),
+                blurRadius: 12 * scale,
+                offset: Offset(0, 4 * scale),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: List.generate(3, (i) {
-          final earned = i < stars;
-          // Subtle staggered twinkle on earned stars.
-          final tw = earned
-              ? 1 + 0.12 * math.sin((loop.value * 2 * math.pi) + i * 1.6)
-              : 1.0;
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 1),
-            child: Transform.translate(
-              offset: Offset(0, i == 1 ? -3 : 0),
-              child: Transform.scale(
-                scale: tw,
-                child: Text(
-                  earned ? '★' : '✩',
-                  style: TextStyle(
-                    fontSize: 18,
-                    color: earned
-                        ? const Color(0xFFFFCE3D)
-                        : const Color(0xFFD9C7E0),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(radius),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 9, sigmaY: 9),
+              child: Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: 9 * scale,
+                  vertical: 4 * scale,
+                ),
+                decoration: BoxDecoration(
+                  // Translucent white + a soft top sheen = frosted glass.
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.white.withValues(alpha: 0.55),
+                      Colors.white.withValues(alpha: 0.28),
+                    ],
                   ),
+                  borderRadius: BorderRadius.circular(radius),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.6),
+                    width: 1.2,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(3, (i) => _star(i, scale)),
                 ),
               ),
             ),
-          );
-        }),
+          ),
+        ),
+        // Pointer tail aimed at the node below.
+        Transform.translate(
+          offset: Offset(0, -2 * scale),
+          child: CustomPaint(
+            size: Size(14 * scale, 7 * scale),
+            painter: _BadgeTailPainter(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _star(int i, double scale) {
+    final earned = i < stars;
+    // Earned stars gently twinkle and bounce; the middle one sits a touch higher.
+    final tw = earned
+        ? 1 + 0.14 * math.sin((loop.value * 2 * math.pi) + i * 1.6)
+        : 1.0;
+    final star = Text(
+      earned ? '★' : '✩',
+      style: TextStyle(
+        fontSize: 19 * scale,
+        height: 1,
+        color: earned ? const Color(0xFFFFC42D) : const Color(0xFFEFE6F5),
+        shadows: earned
+            ? const [
+                Shadow(
+                  color: Color(0x66E89A00),
+                  blurRadius: 4,
+                  offset: Offset(0, 1),
+                ),
+              ]
+            : null,
+      ),
+    );
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 1.5 * scale),
+      child: Transform.translate(
+        offset: Offset(0, i == 1 ? -4 * scale : 0),
+        child: Transform.scale(scale: tw, child: star),
       ),
     );
   }
+}
+
+/// Small downward triangle drawn under the star badge, like a speech-bubble
+/// tail pointing at the level node.
+class _BadgeTailPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final path = Path()
+      ..moveTo(0, 0)
+      ..lineTo(size.width, 0)
+      ..lineTo(size.width / 2, size.height)
+      ..close();
+    canvas.drawShadow(path, const Color(0x33D14A8A), 3, false);
+    canvas.drawPath(path, Paint()..color = Colors.white.withValues(alpha: 0.4));
+  }
+
+  @override
+  bool shouldRepaint(_BadgeTailPainter oldDelegate) => false;
 }
 
 class _PulseRing extends StatefulWidget {
