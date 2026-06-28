@@ -6,6 +6,7 @@ import '../core/theme.dart';
 import '../game/bubble_engine.dart';
 import '../game/bubble_pop_game.dart';
 import '../game/levels.dart';
+import '../game/sections.dart';
 import '../state/game_state.dart';
 import '../widgets/candy.dart';
 
@@ -29,6 +30,11 @@ class _GameScreenState extends State<GameScreen> {
   String _loseReason = 'moves';
   bool _syncScheduled = false;
 
+  final List<_PraiseData> _praises = [];
+  int _praiseId = 0;
+
+  GameSection get _section => GameSection(_level ~/ kSectionSize);
+
   @override
   void initState() {
     super.initState();
@@ -39,13 +45,51 @@ class _GameScreenState extends State<GameScreen> {
     _level = level;
     _winStars = 0;
     _phase = _Phase.playing;
+    _praises.clear();
     _engine = BubbleEngine()
       ..soundOn = GameScope.read(context).soundOn
       ..onSync = _scheduleSync
       ..onSfx = AudioService.instance.play
       ..onWin = _handleWin
-      ..onLose = _handleLose;
+      ..onLose = _handleLose
+      ..onPraise = _handlePraise;
     _game = BubblePopGame(engine: _engine, levelIndex: level);
+  }
+
+  static const List<String> _praiseWords = [
+    'Pop!',
+    'Nice!',
+    'Sweet!',
+    'Yummy!',
+    'Tasty!',
+    'Super!',
+    'Amazing!',
+    'Incredible!',
+    'Unstoppable!',
+  ];
+  static const List<Color> _praiseColors = [
+    AppColors.accent,
+    Color(0xFFFF9A3D),
+    Color(0xFF9B6BFF),
+    Color(0xFF2FB6D6),
+    Color(0xFF3DDC84),
+  ];
+
+  void _handlePraise(int combo, int popped) {
+    final text = popped >= 6 && combo <= 1
+        ? 'Big Pop!'
+        : _praiseWords[(combo - 1).clamp(0, _praiseWords.length - 1)];
+    final color = _praiseColors[(combo - 1).clamp(0, _praiseColors.length - 1)];
+    final id = _praiseId++;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      setState(() => _praises.add(_PraiseData(id, text, color)));
+    });
+  }
+
+  void _removePraise(int id) {
+    if (!mounted) return;
+    setState(() => _praises.removeWhere((p) => p.id == id));
   }
 
   /// The engine fires callbacks from inside the Flame game loop / onLoad, which
@@ -108,9 +152,23 @@ class _GameScreenState extends State<GameScreen> {
   Widget build(BuildContext context) {
     final state = GameScope.of(context);
     _engine.soundOn = state.soundOn;
+    final s = _section;
     return Scaffold(
       body: DecoratedBox(
-        decoration: const BoxDecoration(gradient: AppTheme.backgroundGradient),
+        // Each world tints the play area with its own colour (kept light so
+        // the bubbles stay readable).
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              s.gradient.first.withValues(alpha: 0.30),
+              const Color(0xFFFBF1F8),
+              s.gradient.last.withValues(alpha: 0.22),
+            ],
+            stops: const [0, 0.5, 1],
+          ),
+        ),
         child: SafeArea(
           child: Stack(
             children: [
@@ -132,6 +190,27 @@ class _GameScreenState extends State<GameScreen> {
                   _bottomBar(),
                 ],
               ),
+              // Reward popups ("Sweet!", "Combo!").
+              if (_praises.isNotEmpty)
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: Align(
+                      alignment: const Alignment(0, -0.32),
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          for (final pr in _praises)
+                            _PraisePop(
+                              key: ValueKey(pr.id),
+                              text: pr.text,
+                              color: pr.color,
+                              onDone: () => _removePraise(pr.id),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
               if (_phase == _Phase.pause) _pauseOverlay(),
               if (_phase == _Phase.win) _winOverlay(),
               if (_phase == _Phase.lose) _loseOverlay(),
@@ -754,7 +833,9 @@ class _PowerButtonState extends State<_PowerButton> {
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: armed ? AppColors.accent : const Color(0x14000000),
+                        color: armed
+                            ? AppColors.accent
+                            : const Color(0x14000000),
                         width: armed ? 2.5 : 1,
                       ),
                       boxShadow: [
@@ -822,6 +903,121 @@ class _PowerButtonState extends State<_PowerButton> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _PraiseData {
+  const _PraiseData(this.id, this.text, this.color);
+  final int id;
+  final String text;
+  final Color color;
+}
+
+/// A bouncy, white-outlined "sticker" reward word that pops in, floats up and
+/// fades — the juicy feedback shown when bubbles are cleared.
+class _PraisePop extends StatefulWidget {
+  const _PraisePop({
+    super.key,
+    required this.text,
+    required this.color,
+    required this.onDone,
+  });
+
+  final String text;
+  final Color color;
+  final VoidCallback onDone;
+
+  @override
+  State<_PraisePop> createState() => _PraisePopState();
+}
+
+class _PraisePopState extends State<_PraisePop>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 950),
+  )..forward();
+
+  @override
+  void initState() {
+    super.initState();
+    _c.addStatusListener((s) {
+      if (s == AnimationStatus.completed) widget.onDone();
+    });
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _c,
+      builder: (context, _) {
+        final t = _c.value;
+        final pop = t < 0.4
+            ? Curves.elasticOut.transform((t / 0.4).clamp(0.0, 1.0))
+            : 1.0;
+        final rise =
+            -56.0 * Curves.easeOut.transform(((t - 0.3) / 0.7).clamp(0.0, 1.0));
+        final fade = t < 0.65 ? 1.0 : (1 - (t - 0.65) / 0.35).clamp(0.0, 1.0);
+        final tilt = (1 - pop) * 0.12;
+        return Transform.translate(
+          offset: Offset(0, rise),
+          child: Opacity(
+            opacity: fade,
+            child: Transform.rotate(
+              angle: -tilt,
+              child: Transform.scale(
+                scale: pop.clamp(0.0, 1.15),
+                child: _sticker(),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _sticker() {
+    const style = TextStyle(
+      fontSize: 40,
+      height: 1,
+      fontWeight: FontWeight.w800,
+      letterSpacing: 0.5,
+    );
+    return Stack(
+      children: [
+        // White outline.
+        Text(
+          widget.text,
+          style: style.copyWith(
+            foreground: Paint()
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = 9
+              ..strokeJoin = StrokeJoin.round
+              ..color = Colors.white,
+          ),
+        ),
+        // Coloured fill.
+        Text(
+          widget.text,
+          style: style.copyWith(
+            color: widget.color,
+            shadows: [
+              Shadow(
+                color: Colors.black.withValues(alpha: 0.18),
+                offset: const Offset(0, 3),
+                blurRadius: 3,
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

@@ -87,6 +87,10 @@ class BubbleEngine {
   void Function(String reason)? onLose;
   void Function(String sfx)? onSfx;
 
+  /// Fired when bubbles are cleared, with the current combo and how many
+  /// popped — used to show a "Sweet!" style reward popup.
+  void Function(int combo, int popped)? onPraise;
+
   // Geometry (set from the view size).
   double w = 0, h = 0, r = 0, rowH = 0, top = 0, sx = 0, sy = 0, dangerY = 0;
   int maxRow = 0;
@@ -412,7 +416,10 @@ class BubbleEngine {
       });
       score += hit * 15;
       combo = hit > 0 ? combo + 1 : 0;
-      if (hit > 0) onSfx?.call('bomb');
+      if (hit > 0) {
+        onSfx?.call('bomb');
+        onPraise?.call(combo, hit);
+      }
       _dropFloating();
     } else if (p.special == 'clear') {
       int? target;
@@ -437,7 +444,10 @@ class BubbleEngine {
       }
       score += hit * 15;
       combo = hit > 0 ? combo + 1 : 0;
-      if (hit > 0) onSfx?.call('pop');
+      if (hit > 0) {
+        onSfx?.call('pop');
+        onPraise?.call(combo, hit);
+      }
       _dropFloating();
     } else {
       final cell = _snapCell(ix, iy);
@@ -453,6 +463,7 @@ class BubbleEngine {
           grid[g[0]][g[1]] = null;
         }
         onSfx?.call(combo >= 2 ? 'combo' : 'pop');
+        onPraise?.call(combo, group.length);
         _dropFloating();
       } else {
         combo = 0;
