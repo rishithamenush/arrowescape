@@ -428,15 +428,15 @@ class _IslandStopState extends State<_IslandStop> {
                   ],
                 ),
                 child: Center(
-                  child: Text(
-                    s.emoji,
-                    style: TextStyle(
-                      fontSize: 34,
-                      color: Colors.white.withValues(
-                        alpha: widget.unlocked ? 1 : 0.5,
-                      ),
-                    ),
-                  ),
+                  // Locked worlds stay a mystery — hide the themed emoji and
+                  // show only a lock until the world is unlocked.
+                  child: widget.unlocked
+                      ? Text(s.emoji, style: const TextStyle(fontSize: 34))
+                      : const Icon(
+                          Icons.lock_rounded,
+                          color: Colors.white,
+                          size: 32,
+                        ),
                 ),
               ),
               // Glossy top highlight.
@@ -460,10 +460,7 @@ class _IslandStopState extends State<_IslandStop> {
                   ),
                 ),
               ),
-              // Lock overlay.
-              if (!widget.unlocked)
-                const Icon(Icons.lock_rounded, color: Colors.white, size: 26),
-              // World number badge.
+              // World number badge (unlocked only — locked stays a mystery).
               if (widget.unlocked)
                 Positioned(
                   bottom: 4,
@@ -540,8 +537,9 @@ class _StopLabel extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          // Locked worlds keep their name hidden so the theme stays a surprise.
           Text(
-            s.name,
+            unlocked ? s.name : 'Locked',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.center,
