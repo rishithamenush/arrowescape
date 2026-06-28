@@ -321,8 +321,8 @@ class _LevelSelectScreenState extends State<LevelSelectScreen>
       const labelW = 150.0;
       final onLeft = p.dx < centerX - 1;
       final labelLeft = onLeft
-          ? p.dx + _node / 2 + 12
-          : p.dx - _node / 2 - 12 - labelW;
+          ? p.dx + _node / 2 - 6
+          : p.dx - _node / 2 + 6 - labelW;
       widgets.add(
         Positioned(
           left: labelLeft,
