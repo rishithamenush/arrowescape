@@ -737,9 +737,9 @@ class _RingPainter extends CustomPainter {
         2 * math.pi * progress.clamp(0, 1),
         false,
         Paint()
-          ..color = AppColors.accent
+          ..color = AppColors.accent.withValues(alpha: 0.6)
           ..style = PaintingStyle.stroke
-          ..strokeWidth = 3
+          ..strokeWidth = 4
           ..strokeCap = StrokeCap.round,
       );
     }
