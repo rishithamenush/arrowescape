@@ -727,7 +727,7 @@ class _GameScreenState extends State<GameScreen> {
               onTap: _nextLevel,
               child: _btnText('Next Level'),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 30),
           ],
           Row(
             children: [
