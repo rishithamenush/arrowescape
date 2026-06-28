@@ -665,33 +665,49 @@ class _StarRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(3, (i) {
-        final earned = i < stars;
-        // Subtle staggered twinkle on earned stars.
-        final tw = earned
-            ? 1 + 0.12 * math.sin((loop.value * 2 * math.pi) + i * 1.6)
-            : 1.0;
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 1),
-          child: Transform.translate(
-            offset: Offset(0, i == 1 ? -3 : 0),
-            child: Transform.scale(
-              scale: tw,
-              child: Text(
-                earned ? '★' : '✩',
-                style: TextStyle(
-                  fontSize: 18,
-                  color: earned
-                      ? const Color(0xFFFFCE3D)
-                      : const Color(0xFFD9C7E0),
+    // A white pill behind the stars so they stay highlighted against the map.
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.12),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: List.generate(3, (i) {
+          final earned = i < stars;
+          // Subtle staggered twinkle on earned stars.
+          final tw = earned
+              ? 1 + 0.12 * math.sin((loop.value * 2 * math.pi) + i * 1.6)
+              : 1.0;
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 1),
+            child: Transform.translate(
+              offset: Offset(0, i == 1 ? -3 : 0),
+              child: Transform.scale(
+                scale: tw,
+                child: Text(
+                  earned ? '★' : '✩',
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: earned
+                        ? const Color(0xFFFFCE3D)
+                        : const Color(0xFFD9C7E0),
+                  ),
                 ),
               ),
             ),
-          ),
-        );
-      }),
+          );
+        }),
+      ),
     );
   }
 }
