@@ -234,6 +234,7 @@ class _LevelSelectScreenState extends State<LevelSelectScreen>
   // ---------- stops ----------
   List<Widget> _stops(GameState state, List<Offset> points) {
     final widgets = <Widget>[];
+    final centerX = MediaQuery.sizeOf(context).width / 2;
     for (var i = 0; i < _sections.length; i++) {
       final s = _sections[i];
       final p = points[i];
@@ -314,13 +315,21 @@ class _LevelSelectScreenState extends State<LevelSelectScreen>
         );
       }
 
-      // Name + stars label below the island.
+      // Name + stars label to the OPEN side of the island (right of left-side
+      // stops, left of right-side stops) so it never crowds the road / next
+      // node. Vertically centred on the island.
+      const labelW = 150.0;
+      final onLeft = p.dx < centerX - 1;
+      final labelLeft = onLeft
+          ? p.dx + _node / 2 + 12
+          : p.dx - _node / 2 - 12 - labelW;
       widgets.add(
         Positioned(
-          left: p.dx - 90,
-          top: p.dy + _node / 2 + 8,
-          width: 180,
-          child: Center(
+          left: labelLeft,
+          top: p.dy - 26,
+          width: labelW,
+          child: Align(
+            alignment: onLeft ? Alignment.centerLeft : Alignment.centerRight,
             child: _StopLabel(
               section: s,
               unlocked: unlocked,
