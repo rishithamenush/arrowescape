@@ -726,9 +726,9 @@ class _RingPainter extends CustomPainter {
       center,
       radius,
       Paint()
-        ..color = Colors.white.withValues(alpha: 0.35)
+        ..color = Colors.white.withValues(alpha: 0.18)
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 5,
+        ..strokeWidth = 4,
     );
     if (progress > 0) {
       canvas.drawArc(
@@ -737,9 +737,9 @@ class _RingPainter extends CustomPainter {
         2 * math.pi * progress.clamp(0, 1),
         false,
         Paint()
-          ..color = Colors.white
+          ..color = AppColors.accent
           ..style = PaintingStyle.stroke
-          ..strokeWidth = 5
+          ..strokeWidth = 3
           ..strokeCap = StrokeCap.round,
       );
     }
