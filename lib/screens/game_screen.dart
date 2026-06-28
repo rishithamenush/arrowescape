@@ -1,5 +1,8 @@
+import 'dart:math' as math;
+
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../core/audio_service.dart';
 import '../core/theme.dart';
@@ -32,6 +35,7 @@ class _GameScreenState extends State<GameScreen> {
 
   final List<_PraiseData> _praises = [];
   int _praiseId = 0;
+  final math.Random _rng = math.Random();
 
   GameSection get _section => GameSection(_level ~/ kSectionSize);
 
@@ -56,16 +60,28 @@ class _GameScreenState extends State<GameScreen> {
     _game = BubblePopGame(engine: _engine, levelIndex: level);
   }
 
-  static const List<String> _praiseWords = [
-    'Pop!',
-    'Nice!',
-    'Sweet!',
-    'Yummy!',
-    'Tasty!',
-    'Super!',
-    'Amazing!',
-    'Incredible!',
-    'Unstoppable!',
+  // Lots of fun, kid-friendly words. Each combo level picks randomly from its
+  // tier so the same word rarely repeats.
+  static const List<List<String>> _praiseTiers = [
+    ['Pop!', 'Nice!', 'Yay!', 'Cool!', 'Good!', 'Nice One!', 'Woohoo!'],
+    ['Sweet!', 'Yummy!', 'Tasty!', 'Great!', 'Lovely!', 'Sugar Pop!'],
+    ['Super!', 'Wow!', 'Awesome!', 'Boom!', 'Sugar Rush!', 'Splendid!'],
+    [
+      'Amazing!',
+      'Fantastic!',
+      'Bravo!',
+      'Magic!',
+      'Sweet Combo!',
+      'Brilliant!',
+    ],
+    ['Incredible!', 'Spectacular!', 'Candylicious!', 'Mega Pop!', 'Wonderful!'],
+    [
+      'Unstoppable!',
+      'Legendary!',
+      'Champion!',
+      'Bubble Master!',
+      'Sugar Star!',
+    ],
   ];
   static const List<Color> _praiseColors = [
     AppColors.accent,
@@ -76,13 +92,23 @@ class _GameScreenState extends State<GameScreen> {
   ];
 
   void _handlePraise(int combo, int popped) {
-    final text = popped >= 6 && combo <= 1
+    final tier = (combo - 1).clamp(0, _praiseTiers.length - 1);
+    final options = _praiseTiers[tier];
+    final text = (popped >= 7 && combo <= 1)
         ? 'Big Pop!'
-        : _praiseWords[(combo - 1).clamp(0, _praiseWords.length - 1)];
+        : options[_rng.nextInt(options.length)];
     final color = _praiseColors[(combo - 1).clamp(0, _praiseColors.length - 1)];
     final id = _praiseId++;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
+      // Tactile feedback works even without audio files bundled.
+      if (GameScope.read(context).soundOn) {
+        if (combo >= 3) {
+          HapticFeedback.mediumImpact();
+        } else {
+          HapticFeedback.lightImpact();
+        }
+      }
       setState(() => _praises.add(_PraiseData(id, text, color)));
     });
   }
