@@ -283,9 +283,10 @@ class _GameScreenState extends State<GameScreen> {
     required VoidCallback onTap,
     required IconData icon,
     Color color = AppColors.accent,
+    Color bg = Colors.white,
   }) {
     return CandyButton(
-      color: Colors.white,
+      color: bg,
       shadow: AppColors.pillShadow,
       radius: 21,
       depth: 3,
@@ -350,8 +351,9 @@ class _GameScreenState extends State<GameScreen> {
   // ---------- bottom bar ----------
   Widget _bottomBar() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+      padding: const EdgeInsets.fromLTRB(22, 4, 22, 14),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           _PowerButton(
             label: 'Bomb',
@@ -360,7 +362,7 @@ class _GameScreenState extends State<GameScreen> {
             icon: _bombIcon(),
             onTap: _engine.selectBomb,
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 16),
           _PowerButton(
             label: 'Clear',
             count: _engine.clear,
@@ -369,30 +371,30 @@ class _GameScreenState extends State<GameScreen> {
             onTap: _engine.selectClear,
           ),
           const Spacer(),
-          _circleButton(
-            onTap: _engine.swap,
-            icon: Icons.swap_horiz_rounded,
-            color: AppColors.body,
-          ),
-          const SizedBox(width: 10),
-          // NEXT preview inside a soft pill.
-          _softPill(
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  'NEXT',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 1,
-                    color: AppColors.label,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                _glossyBubble(BubblePalette.base[_engine.next], 34),
-              ],
+          Padding(
+            padding: const EdgeInsets.only(bottom: 18),
+            child: _circleButton(
+              onTap: _engine.swap,
+              icon: Icons.swap_horiz_rounded,
+              color: AppColors.body,
             ),
+          ),
+          const SizedBox(width: 16),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'NEXT',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 1,
+                  color: AppColors.label,
+                ),
+              ),
+              const SizedBox(height: 5),
+              _glossyBubble(BubblePalette.base[_engine.next], 40),
+            ],
           ),
         ],
       ),
@@ -732,94 +734,88 @@ class _PowerButtonState extends State<_PowerButton> {
       onTapCancel: () => _set(false),
       onTap: widget.onTap,
       child: AnimatedScale(
-        scale: _down ? 0.93 : 1.0,
+        scale: _down ? 0.9 : 1.0,
         duration: const Duration(milliseconds: 80),
         curve: Curves.easeOut,
         child: Opacity(
-          opacity: empty ? 0.5 : 1,
-          child: Stack(
-            clipBehavior: Clip.none,
+          opacity: empty ? 0.45 : 1,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                padding: const EdgeInsets.fromLTRB(14, 9, 14, 7),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: armed
-                        ? const [Color(0xFFFFE6F0), Color(0xFFFFD3E4)]
-                        : const [Colors.white, Color(0xFFF3F1FF)],
-                  ),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: armed ? AppColors.accent : Colors.transparent,
-                    width: 2.5,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.heading.withValues(alpha: 0.12),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                    if (armed)
-                      BoxShadow(
-                        color: AppColors.accent.withValues(alpha: 0.45),
-                        blurRadius: 14,
+              // Icon tile.
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 140),
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: armed ? AppColors.accent : const Color(0x14000000),
+                        width: armed ? 2.5 : 1,
                       ),
-                  ],
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    widget.icon,
-                    const SizedBox(height: 4),
-                    Text(
-                      widget.label,
-                      style: const TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.body,
+                      boxShadow: [
+                        BoxShadow(
+                          color: armed
+                              ? AppColors.accent.withValues(alpha: 0.4)
+                              : AppColors.heading.withValues(alpha: 0.14),
+                          blurRadius: armed ? 16 : 10,
+                          offset: const Offset(0, 5),
+                        ),
+                      ],
+                    ),
+                    child: Center(child: widget.icon),
+                  ),
+                  // Count badge.
+                  Positioned(
+                    top: -5,
+                    right: -5,
+                    child: Container(
+                      constraints: const BoxConstraints(
+                        minWidth: 21,
+                        minHeight: 21,
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 5),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [AppColors.pinkLight, AppColors.pink],
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.white, width: 2),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.15),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Center(
+                        child: Text(
+                          '${widget.count}',
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                          ),
+                        ),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-              // Count badge.
-              Positioned(
-                top: -4,
-                right: -4,
-                child: Container(
-                  constraints: const BoxConstraints(
-                    minWidth: 20,
-                    minHeight: 20,
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 5),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [AppColors.pinkLight, AppColors.pink],
-                    ),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.white, width: 2),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.15),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Center(
-                    child: Text(
-                      '${widget.count}',
-                      style: const TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
+              const SizedBox(height: 6),
+              Text(
+                widget.label,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: armed ? AppColors.accent : AppColors.body,
                 ),
               ),
             ],
