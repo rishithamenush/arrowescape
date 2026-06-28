@@ -1,6 +1,3 @@
-import 'dart:math' as math;
-import 'dart:ui' show ImageFilter;
-
 import 'package:flutter/material.dart';
 
 import '../core/theme.dart';
@@ -9,8 +6,9 @@ import '../state/game_state.dart';
 import '../widgets/candy.dart';
 import 'game_screen.dart';
 
-/// The winding candy road map for a single world, with animated nodes, a
-/// flowing road, a bobbing "play here" marker and drifting background candy.
+/// A single world's level picker — a clean, glossy **grid of level tiles**
+/// (number + earned stars), themed in the world's colour. Tapping a tile opens
+/// that level. (The winding road look is reserved for the Worlds trail.)
 class WorldMapScreen extends StatefulWidget {
   const WorldMapScreen({super.key, required this.section});
 
@@ -20,26 +18,13 @@ class WorldMapScreen extends StatefulWidget {
   State<WorldMapScreen> createState() => _WorldMapScreenState();
 }
 
-class _WorldMapScreenState extends State<WorldMapScreen>
-    with TickerProviderStateMixin {
-  static const double _spacing = 132;
-  static const double _topPad = 116; // room for the first node's PLAY tag
-  static const double _botPad = 100;
-  static const double _node = 66;
-
+class _WorldMapScreenState extends State<WorldMapScreen> {
   final ScrollController _scroll = ScrollController();
 
-  // Staggered node pop-in.
-  late final AnimationController _entrance = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 1100),
-  )..forward();
-
-  // Continuous loop: flowing road dashes, bobbing marker, twinkling stars.
-  late final AnimationController _loop = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 2600),
-  )..repeat();
+  static const int _cols = 3;
+  static const double _pad = 18;
+  static const double _gap = 14;
+  static const double _aspect = 0.86; // tile width / height
 
   @override
   void initState() {
@@ -49,16 +34,17 @@ class _WorldMapScreenState extends State<WorldMapScreen>
       final state = GameScope.read(context);
       final local = state.unlocked - widget.section.start;
       if (local < 0 || local >= widget.section.count) return;
-      final target =
-          _topPad + local * _spacing - _scroll.position.viewportDimension / 2;
+      final width = MediaQuery.sizeOf(context).width;
+      final tileW = (width - _pad * 2 - _gap * (_cols - 1)) / _cols;
+      final rowH = tileW / _aspect + _gap;
+      final row = local ~/ _cols;
+      final target = row * rowH - _scroll.position.viewportDimension / 2;
       _scroll.jumpTo(target.clamp(0, _scroll.position.maxScrollExtent));
     });
   }
 
   @override
   void dispose() {
-    _entrance.dispose();
-    _loop.dispose();
     _scroll.dispose();
     super.dispose();
   }
@@ -93,62 +79,34 @@ class _WorldMapScreenState extends State<WorldMapScreen>
               children: [
                 _header(s, state),
                 Expanded(
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      final width = constraints.maxWidth;
-                      final n = s.count;
-                      final amp = (width / 2 - _node / 2 - 18).clamp(
-                        0.0,
-                        130.0,
-                      );
-                      final centerX = width / 2;
-                      final points = <Offset>[
-                        for (var i = 0; i < n; i++)
-                          Offset(
-                            centerX + amp * math.sin((s.start + i) * 0.9),
-                            _topPad + i * _spacing,
-                          ),
-                      ];
-                      final mapHeight = _topPad + (n - 1) * _spacing + _botPad;
-
-                      return SingleChildScrollView(
-                        controller: _scroll,
-                        physics: const BouncingScrollPhysics(),
-                        child: SizedBox(
-                          width: width,
-                          height: mapHeight,
-                          child: Stack(
-                            children: [
-                              // Themed emoji decorations behind the path.
-                              ..._decor(s, mapHeight),
-                              // Flowing road.
-                              Positioned.fill(
-                                child: AnimatedBuilder(
-                                  animation: _loop,
-                                  builder: (_, __) => CustomPaint(
-                                    painter: _RoadPainter(
-                                      points,
-                                      _loop.value,
-                                      s.shadow,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              // Animated nodes.
-                              Positioned.fill(
-                                child: AnimatedBuilder(
-                                  animation: Listenable.merge([
-                                    _entrance,
-                                    _loop,
-                                  ]),
-                                  builder: (_, __) => Stack(
-                                    children: _nodes(state, s, points, n),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
+                  child: GridView.builder(
+                    controller: _scroll,
+                    padding: const EdgeInsets.fromLTRB(_pad, 6, _pad, 28),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: _cols,
+                          mainAxisSpacing: _gap,
+                          crossAxisSpacing: _gap,
+                          childAspectRatio: _aspect,
                         ),
+                    itemCount: s.count,
+                    itemBuilder: (context, i) {
+                      final global = s.start + i;
+                      final locked = !state.isUnlocked(global);
+                      return _LevelTile(
+                        number: global + 1,
+                        stars: state.starsFor(global),
+                        locked: locked,
+                        current: global == state.unlocked && !locked,
+                        gradient: locked ? AppColors.lockedCard : s.gradient,
+                        shadow: locked ? AppColors.lockedShadow : s.shadow,
+                        onTap: locked
+                            ? null
+                            : () => Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => GameScreen(level: global),
+                                ),
+                              ),
                       );
                     },
                   ),
@@ -306,340 +264,60 @@ class _WorldMapScreenState extends State<WorldMapScreen>
       ),
     );
   }
-
-  /// Big faded world-emoji watermarks scattered down the sides of the map to
-  /// give each world its own themed feel.
-  List<Widget> _decor(GameSection s, double mapHeight) {
-    final widgets = <Widget>[];
-    final count = (mapHeight / 300).floor().clamp(2, 30);
-    for (var i = 0; i < count; i++) {
-      final left = i.isEven;
-      widgets.add(
-        Positioned(
-          left: left ? -14 : null,
-          right: left ? null : -14,
-          top: 130.0 + i * 300.0,
-          child: IgnorePointer(
-            child: Opacity(
-              opacity: 0.13,
-              child: Transform.rotate(
-                angle: left ? -0.22 : 0.22,
-                child: Text(s.emoji, style: const TextStyle(fontSize: 104)),
-              ),
-            ),
-          ),
-        ),
-      );
-    }
-    return widgets;
-  }
-
-  List<Widget> _nodes(
-    GameState state,
-    GameSection s,
-    List<Offset> points,
-    int n,
-  ) {
-    final widgets = <Widget>[];
-    for (var i = 0; i < n; i++) {
-      final global = s.start + i;
-      final p = points[i];
-      final locked = !state.isUnlocked(global);
-      final completed = state.starsFor(global) > 0;
-      final current = global == state.unlocked && !locked;
-
-      // Staggered pop-in: 0..1 with a back-ease overshoot.
-      final raw = ((_entrance.value * (n + 5) - i) / 5).clamp(0.0, 1.0);
-      final appear = raw;
-      final pop = Curves.easeOutBack.transform(raw);
-      final isFinal = i == n - 1; // top of the climb = the world's goal
-      // Gentle bob for the current node, once it has popped in.
-      final bob = current && appear > 0.95
-          ? math.sin(_loop.value * 2 * math.pi) * 5
-          : 0.0;
-      final pulse = 0.5 + 0.5 * math.sin(_loop.value * 2 * math.pi);
-      final nodeScale = (current ? 1.2 : 1.0) * pop;
-
-      // Glowing halo behind the current node.
-      if (current) {
-        const halo = 150.0;
-        widgets.add(
-          Positioned(
-            left: p.dx - halo / 2,
-            top: p.dy - halo / 2 + bob,
-            child: IgnorePointer(
-              child: Opacity(
-                opacity: appear * (0.4 + 0.35 * pulse),
-                child: Container(
-                  width: halo,
-                  height: halo,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: RadialGradient(
-                      colors: [
-                        AppColors.accent.withValues(alpha: 0.6),
-                        AppColors.accent.withValues(alpha: 0),
-                      ],
-                      stops: const [0.2, 1],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
-      }
-
-      // Goal flag planted on the final node of the world.
-      if (isFinal) {
-        widgets.add(
-          Positioned(
-            left: p.dx - 10,
-            top: p.dy - _node / 2 - 58 + bob,
-            child: Opacity(
-              opacity: appear,
-              child: _GoalFlag(loop: _loop),
-            ),
-          ),
-        );
-      }
-
-      if (completed) {
-        widgets.add(
-          Positioned(
-            left: p.dx - 60,
-            top: p.dy - _node / 2 - 26,
-            width: 120,
-            child: Opacity(
-              opacity: appear,
-              child: Align(
-                child: _StarRow(stars: state.starsFor(global), loop: _loop),
-              ),
-            ),
-          ),
-        );
-      }
-
-      if (current) {
-        widgets.add(
-          Positioned(
-            left: p.dx - (_node + 28) / 2,
-            top: p.dy - (_node + 28) / 2 + bob,
-            child: Opacity(
-              opacity: appear,
-              child: const _PulseRing(size: _node + 28),
-            ),
-          ),
-        );
-        // Bobbing "PLAY" marker (unless the goal flag already marks this node).
-        if (!isFinal) {
-          widgets.add(
-            Positioned(
-              left: p.dx - 44,
-              top: p.dy - _node / 2 - 56 + bob,
-              width: 88,
-              child: Opacity(opacity: appear, child: const _PlayTag()),
-            ),
-          );
-        }
-      }
-
-      widgets.add(
-        Positioned(
-          left: p.dx - _node / 2,
-          top: p.dy - _node / 2 + bob,
-          child: Transform.scale(
-            scale: nodeScale.clamp(0.0, 1.3),
-            child: Opacity(
-              opacity: appear.clamp(0.0, 1.0),
-              child: _LevelNode(
-                index: global,
-                locked: locked,
-                current: current,
-                size: _node,
-                gradient: locked ? AppColors.lockedCard : s.gradient,
-                shadow: locked ? AppColors.lockedShadow : s.shadow,
-                onTap: locked
-                    ? null
-                    : () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => GameScreen(level: global),
-                        ),
-                      ),
-              ),
-            ),
-          ),
-        ),
-      );
-    }
-    return widgets;
-  }
 }
 
-class _PlayTag extends StatelessWidget {
-  const _PlayTag();
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [AppColors.pinkLight, AppColors.pink],
-            ),
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: const [
-              BoxShadow(color: AppColors.pinkShadow, offset: Offset(0, 3)),
-            ],
-          ),
-          child: const Text(
-            'PLAY',
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
-            ),
-          ),
-        ),
-        Transform.translate(
-          offset: const Offset(0, -2),
-          child: const Icon(
-            Icons.arrow_drop_down_rounded,
-            color: AppColors.pink,
-            size: 22,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-/// A gently-waving pennant flag marking a world's final (goal) level.
-class _GoalFlag extends StatelessWidget {
-  const _GoalFlag({required this.loop});
-  final Animation<double> loop;
-
-  @override
-  Widget build(BuildContext context) {
-    // Driven by the parent's per-frame rebuild.
-    final wave = math.sin(loop.value * 2 * math.pi);
-    return SizedBox(
-      width: 50,
-      height: 60,
-      child: Stack(
-        children: [
-          // Pole.
-          Positioned(
-            left: 8,
-            top: 4,
-            bottom: 0,
-            child: Container(
-              width: 5,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Color(0xFFC79A6E), Color(0xFF8B5E3C)],
-                ),
-                borderRadius: BorderRadius.circular(3),
-              ),
-            ),
-          ),
-          // Pole knob.
-          const Positioned(
-            left: 6,
-            top: 0,
-            child: Icon(Icons.circle, size: 9, color: Color(0xFFFFC93C)),
-          ),
-          // Waving pennant with a star.
-          Positioned(
-            left: 11,
-            top: 5,
-            child: Transform(
-              alignment: Alignment.centerLeft,
-              transform: Matrix4.diagonal3Values(1 + wave * 0.08, 1.0, 1.0),
-              child: ClipPath(
-                clipper: _Pennant(),
-                child: Container(
-                  width: 36,
-                  height: 24,
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [Color(0xFFFFE08A), Color(0xFFFFB020)],
-                    ),
-                  ),
-                  child: const Align(
-                    alignment: Alignment(-0.5, 0),
-                    child: Text(
-                      '★',
-                      style: TextStyle(fontSize: 13, color: Colors.white),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Right-pointing swallowtail pennant shape.
-class _Pennant extends CustomClipper<Path> {
-  @override
-  Path getClip(Size size) {
-    return Path()
-      ..moveTo(0, 0)
-      ..lineTo(size.width, 0)
-      ..lineTo(size.width - 9, size.height / 2)
-      ..lineTo(size.width, size.height)
-      ..lineTo(0, size.height)
-      ..close();
-  }
-
-  @override
-  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
-}
-
-class _LevelNode extends StatefulWidget {
-  const _LevelNode({
-    required this.index,
+/// A single glossy level tile: number, three rating stars, lock / current state.
+class _LevelTile extends StatefulWidget {
+  const _LevelTile({
+    required this.number,
+    required this.stars,
     required this.locked,
     required this.current,
-    required this.size,
     required this.gradient,
     required this.shadow,
     required this.onTap,
   });
 
-  final int index;
+  final int number;
+  final int stars;
   final bool locked;
   final bool current;
-  final double size;
   final List<Color> gradient;
   final Color shadow;
   final VoidCallback? onTap;
 
   @override
-  State<_LevelNode> createState() => _LevelNodeState();
+  State<_LevelTile> createState() => _LevelTileState();
 }
 
-class _LevelNodeState extends State<_LevelNode> {
+class _LevelTileState extends State<_LevelTile>
+    with SingleTickerProviderStateMixin {
   bool _down = false;
+  AnimationController? _glow;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.current) {
+      _glow = AnimationController(
+        vsync: this,
+        duration: const Duration(milliseconds: 1400),
+      )..repeat(reverse: true);
+    }
+  }
+
+  @override
+  void dispose() {
+    _glow?.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final d = widget.size;
+    final br = BorderRadius.circular(18);
     final enabled = widget.onTap != null;
-    return GestureDetector(
+
+    Widget tile = GestureDetector(
       onTapDown: enabled ? (_) => setState(() => _down = true) : null,
       onTapUp: enabled ? (_) => setState(() => _down = false) : null,
       onTapCancel: () => setState(() => _down = false),
@@ -648,307 +326,162 @@ class _LevelNodeState extends State<_LevelNode> {
         scale: _down ? 0.92 : 1,
         duration: const Duration(milliseconds: 80),
         curve: Curves.easeOut,
-        child: SizedBox(
-          width: d,
-          height: d,
-          child: Stack(
-            alignment: Alignment.center,
-            clipBehavior: Clip.none,
-            children: [
-              // Glossy island body.
-              Container(
-                width: d,
-                height: d,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: widget.gradient,
-                  ),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.8),
-                    width: 3,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: widget.shadow.withValues(alpha: 0.55),
-                      blurRadius: 9,
-                      offset: const Offset(0, 5),
-                    ),
-                  ],
-                ),
-              ),
-              // Top gloss highlight.
-              Positioned(
-                top: d * 0.15,
-                child: IgnorePointer(
-                  child: Container(
-                    width: d * 0.46,
-                    height: d * 0.24,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(40),
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.white.withValues(alpha: 0.55),
-                          Colors.white.withValues(alpha: 0),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              // Number or lock.
-              widget.locked
-                  ? Icon(Icons.lock_rounded, color: Colors.white, size: d * 0.4)
-                  : Text(
-                      '${widget.index + 1}',
-                      style: TextStyle(
-                        fontSize: widget.current ? d * 0.4 : d * 0.36,
-                        height: 1,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                        shadows: const [
-                          Shadow(
-                            color: Color(0x40000000),
-                            offset: Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                    ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _StarRow extends StatelessWidget {
-  const _StarRow({required this.stars, required this.loop});
-  final int stars;
-  final Animation<double> loop;
-
-  @override
-  Widget build(BuildContext context) {
-    // Responsive scale: sizes grow/shrink gently with the screen width so the
-    // badge looks right on small phones and large tablets alike.
-    final scale = (MediaQuery.sizeOf(context).width / 390).clamp(0.85, 1.3);
-    final radius = 16.0 * scale;
-
-    // A frosted-glass badge with a little pointer tail, so the stars read as a
-    // tooltip "rating" floating over the level node.
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        DecoratedBox(
+        child: DecoratedBox(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(radius),
+            borderRadius: br,
             boxShadow: [
               BoxShadow(
-                color: AppColors.accent.withValues(alpha: 0.22),
-                blurRadius: 12 * scale,
-                offset: Offset(0, 4 * scale),
+                color: widget.shadow.withValues(alpha: 0.5),
+                blurRadius: 8,
+                offset: const Offset(0, 5),
               ),
             ],
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(radius),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 9, sigmaY: 9),
-              child: Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: 9 * scale,
-                  vertical: 4 * scale,
-                ),
-                decoration: BoxDecoration(
-                  // Translucent white + a soft top sheen = frosted glass.
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.white.withValues(alpha: 0.55),
-                      Colors.white.withValues(alpha: 0.28),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(radius),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.6),
-                    width: 1.2,
+            borderRadius: br,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                // Themed gradient face.
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: widget.gradient,
+                    ),
                   ),
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(3, (i) => _star(i, scale)),
+                // Top gloss.
+                Align(
+                  alignment: Alignment.topCenter,
+                  child: FractionallySizedBox(
+                    heightFactor: 0.5,
+                    widthFactor: 1,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.white.withValues(alpha: 0.32),
+                            Colors.white.withValues(alpha: 0),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
-              ),
+                // Content.
+                Center(
+                  child: widget.locked
+                      ? const Icon(
+                          Icons.lock_rounded,
+                          color: Colors.white,
+                          size: 26,
+                        )
+                      : Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              '${widget.number}',
+                              style: const TextStyle(
+                                fontSize: 32,
+                                height: 1,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
+                                shadows: [
+                                  Shadow(
+                                    color: Color(0x40000000),
+                                    offset: Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 7),
+                            _stars(),
+                          ],
+                        ),
+                ),
+                // Glass rim.
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    borderRadius: br,
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.4),
+                      width: 1.2,
+                    ),
+                  ),
+                ),
+                // Current-level bright ring.
+                if (widget.current)
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      borderRadius: br,
+                      border: Border.all(color: Colors.white, width: 2.5),
+                    ),
+                  ),
+              ],
             ),
           ),
         ),
-        // Pointer tail aimed at the node below.
-        Transform.translate(
-          offset: Offset(0, -2 * scale),
-          child: CustomPaint(
-            size: Size(14 * scale, 7 * scale),
-            painter: _BadgeTailPainter(),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _star(int i, double scale) {
-    final earned = i < stars;
-    // Earned stars gently twinkle and bounce; the middle one sits a touch higher.
-    final tw = earned
-        ? 1 + 0.14 * math.sin((loop.value * 2 * math.pi) + i * 1.6)
-        : 1.0;
-    final star = Text(
-      earned ? '★' : '✩',
-      style: TextStyle(
-        fontSize: 19 * scale,
-        height: 1,
-        color: earned ? const Color(0xFFFFC42D) : const Color(0xFFEFE6F5),
-        shadows: earned
-            ? const [
-                Shadow(
-                  color: Color(0x66E89A00),
-                  blurRadius: 4,
-                  offset: Offset(0, 1),
-                ),
-              ]
-            : null,
       ),
     );
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 1.5 * scale),
-      child: Transform.translate(
-        offset: Offset(0, i == 1 ? -4 * scale : 0),
-        child: Transform.scale(scale: tw, child: star),
-      ),
-    );
-  }
-}
 
-/// Small downward triangle drawn under the star badge, like a speech-bubble
-/// tail pointing at the level node.
-class _BadgeTailPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final path = Path()
-      ..moveTo(0, 0)
-      ..lineTo(size.width, 0)
-      ..lineTo(size.width / 2, size.height)
-      ..close();
-    canvas.drawShadow(path, const Color(0x33D14A8A), 3, false);
-    canvas.drawPath(path, Paint()..color = Colors.white.withValues(alpha: 0.4));
-  }
-
-  @override
-  bool shouldRepaint(_BadgeTailPainter oldDelegate) => false;
-}
-
-class _PulseRing extends StatefulWidget {
-  const _PulseRing({required this.size});
-  final double size;
-
-  @override
-  State<_PulseRing> createState() => _PulseRingState();
-}
-
-class _PulseRingState extends State<_PulseRing>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _c = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 1300),
-  )..repeat();
-
-  @override
-  void dispose() {
-    _c.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return IgnorePointer(
-      child: AnimatedBuilder(
-        animation: _c,
-        builder: (context, _) {
-          final t = _c.value;
-          return Opacity(
-            opacity: (1 - t) * 0.7,
-            child: Transform.scale(
-              scale: 0.85 + t * 0.4,
-              child: Container(
-                width: widget.size,
-                height: widget.size,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.accent, width: 4),
+    // Soft pulsing glow behind the current level.
+    if (widget.current && _glow != null) {
+      tile = AnimatedBuilder(
+        animation: _glow!,
+        builder: (_, child) => DecoratedBox(
+          decoration: BoxDecoration(
+            borderRadius: br,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.white.withValues(
+                  alpha: 0.25 + 0.45 * _glow!.value,
                 ),
+                blurRadius: 14 + 8 * _glow!.value,
+                spreadRadius: 1,
               ),
+            ],
+          ),
+          child: child,
+        ),
+        child: tile,
+      );
+    }
+
+    return tile;
+  }
+
+  Widget _stars() {
+    // Stars sit inside a soft pill so they read as a tidy rating badge.
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.18),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.25),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: List.generate(3, (i) {
+          final earned = i < widget.stars;
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 1),
+            child: Icon(
+              Icons.star_rounded,
+              size: 16,
+              color: earned
+                  ? const Color(0xFFFFD23F)
+                  : Colors.white.withValues(alpha: 0.4),
             ),
           );
-        },
+        }),
       ),
     );
   }
-}
-
-class _RoadPainter extends CustomPainter {
-  _RoadPainter(this.points, this.phase, this.theme);
-  final List<Offset> points;
-  final double phase;
-  final Color theme;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (points.length < 2) return;
-    final path = Path()..moveTo(points.first.dx, points.first.dy);
-    for (var i = 0; i < points.length - 1; i++) {
-      final a = points[i], b = points[i + 1];
-      final midY = (a.dy + b.dy) / 2;
-      path.cubicTo(a.dx, midY, b.dx, midY, b.dx, b.dy);
-    }
-
-    // Candy ribbon matching the Worlds trail: white casing + a themed ribbon
-    // tinted to this world's colour, with white dots flowing along it.
-    canvas.drawPath(
-      path,
-      Paint()
-        ..color = Colors.white.withValues(alpha: 0.62)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 26
-        ..strokeCap = StrokeCap.round
-        ..strokeJoin = StrokeJoin.round,
-    );
-    canvas.drawPath(
-      path,
-      Paint()
-        ..color = theme.withValues(alpha: 0.40)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 13
-        ..strokeCap = StrokeCap.round
-        ..strokeJoin = StrokeJoin.round,
-    );
-
-    // Flowing dots travelling along the road.
-    final dot = Paint()..color = Colors.white;
-    for (final metric in path.computeMetrics()) {
-      var d = (phase * 30) % 30;
-      while (d < metric.length) {
-        final tan = metric.getTangentForOffset(d);
-        if (tan != null) canvas.drawCircle(tan.position, 3.2, dot);
-        d += 30;
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _RoadPainter old) =>
-      old.points != points || old.phase != phase || old.theme != theme;
 }
