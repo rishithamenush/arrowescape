@@ -402,6 +402,7 @@ class _IslandStopState extends State<_IslandStop> {
                 size: Size(d, d),
                 painter: _RingPainter(
                   progress: widget.unlocked ? widget.progress : 0,
+                  color: widget.section.shadow,
                 ),
               ),
               // Island body.
@@ -715,8 +716,9 @@ class _TrailPainter extends CustomPainter {
 
 /// Circular progress ring drawn around an island stop.
 class _RingPainter extends CustomPainter {
-  _RingPainter({required this.progress});
+  _RingPainter({required this.progress, required this.color});
   final double progress;
+  final Color color;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -737,7 +739,7 @@ class _RingPainter extends CustomPainter {
         2 * math.pi * progress.clamp(0, 1),
         false,
         Paint()
-          ..color = AppColors.accent.withValues(alpha: 0.6)
+          ..color = color.withValues(alpha: 0.5)
           ..style = PaintingStyle.stroke
           ..strokeWidth = 4
           ..strokeCap = StrokeCap.round,
@@ -746,5 +748,6 @@ class _RingPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _RingPainter old) => old.progress != progress;
+  bool shouldRepaint(covariant _RingPainter old) =>
+      old.progress != progress || old.color != color;
 }
