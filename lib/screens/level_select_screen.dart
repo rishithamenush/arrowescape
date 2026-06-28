@@ -8,8 +8,10 @@ import '../state/game_state.dart';
 import '../widgets/candy.dart';
 import 'world_map_screen.dart';
 
-/// The "Worlds" overview: a scrollable list of richly-styled world cards that
-/// open into a winding road map.
+/// The "Worlds" overview, presented as a single winding candy **journey trail**:
+/// each world is a glossy island stop along a flowing path, zig-zagging down the
+/// screen. Tapping a stop opens that world's level map. This mirrors the in-game
+/// road map so the whole app reads as one continuous adventure.
 class LevelSelectScreen extends StatefulWidget {
   const LevelSelectScreen({super.key});
 
@@ -17,9 +19,22 @@ class LevelSelectScreen extends StatefulWidget {
   State<LevelSelectScreen> createState() => _LevelSelectScreenState();
 }
 
-class _LevelSelectScreenState extends State<LevelSelectScreen> {
+class _LevelSelectScreenState extends State<LevelSelectScreen>
+    with SingleTickerProviderStateMixin {
   final ScrollController _scroll = ScrollController();
   late final List<GameSection> _sections = buildSections();
+
+  // Continuous loop for the flowing road dots + current-stop pulse.
+  late final AnimationController _loop = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 2600),
+  )..repeat();
+
+  // Trail geometry.
+  static const double _spacing = 158; // vertical gap between stops
+  static const double _topPad = 86;
+  static const double _botPad = 96;
+  static const double _node = 92; // island diameter
 
   @override
   void initState() {
@@ -28,15 +43,15 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
       if (!mounted || !_scroll.hasClients) return;
       final state = GameScope.read(context);
       final current = state.unlocked ~/ kSectionSize;
-      const cardExtent = 156.0;
       final target =
-          current * cardExtent - _scroll.position.viewportDimension / 3;
+          _topPad + current * _spacing - _scroll.position.viewportDimension / 2;
       _scroll.jumpTo(target.clamp(0, _scroll.position.maxScrollExtent));
     });
   }
 
   @override
   void dispose() {
+    _loop.dispose();
     _scroll.dispose();
     super.dispose();
   }
@@ -44,20 +59,49 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
   @override
   Widget build(BuildContext context) {
     final state = GameScope.of(context);
-
     return Scaffold(
       body: CandyBackground(
-        bubbles: false,
         child: Column(
           children: [
             _header(state),
             Expanded(
-              child: ListView.builder(
-                controller: _scroll,
-                padding: const EdgeInsets.fromLTRB(18, 4, 18, 28),
-                itemCount: _sections.length,
-                itemBuilder: (context, i) =>
-                    _WorldCard(section: _sections[i], state: state),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final width = constraints.maxWidth;
+                  final n = _sections.length;
+                  final amp = (width / 2 - _node / 2 - 30).clamp(0.0, 96.0);
+                  final centerX = width / 2;
+                  final points = <Offset>[
+                    for (var i = 0; i < n; i++)
+                      Offset(
+                        centerX + amp * math.sin(i * 0.9),
+                        _topPad + i * _spacing,
+                      ),
+                  ];
+                  final mapHeight = _topPad + (n - 1) * _spacing + _botPad;
+
+                  return SingleChildScrollView(
+                    controller: _scroll,
+                    physics: const BouncingScrollPhysics(),
+                    child: SizedBox(
+                      width: width,
+                      height: mapHeight,
+                      child: AnimatedBuilder(
+                        animation: _loop,
+                        builder: (_, __) => Stack(
+                          children: [
+                            Positioned.fill(
+                              child: CustomPaint(
+                                painter: _TrailPainter(points, _loop.value),
+                              ),
+                            ),
+                            ..._stops(state, points),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
           ],
@@ -66,11 +110,12 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
     );
   }
 
+  // ---------- header ----------
   Widget _header(GameState state) {
     final total = state.progress.fold<int>(0, (s, v) => s + v);
     final maxStars = state.progress.length * 3;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 6),
       child: Row(
         children: [
           CandyButton(
@@ -91,7 +136,6 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
             ),
           ),
           const SizedBox(width: 10),
-          // White banner with title + a gold stars chip.
           Expanded(
             child: Container(
               padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
@@ -129,7 +173,7 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
                         ),
                         const SizedBox(height: 1),
                         const Text(
-                          'Pick a world to play',
+                          'Follow the trail to play',
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
@@ -140,7 +184,6 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  // Gold stars chip.
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 12,
@@ -187,345 +230,347 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
       ),
     );
   }
+
+  // ---------- stops ----------
+  List<Widget> _stops(GameState state, List<Offset> points) {
+    final widgets = <Widget>[];
+    for (var i = 0; i < _sections.length; i++) {
+      final s = _sections[i];
+      final p = points[i];
+      final unlocked = state.isUnlocked(s.start);
+
+      var completed = 0, stars = 0;
+      for (var l = s.start; l <= s.end; l++) {
+        if (state.starsFor(l) > 0) completed++;
+        stars += state.starsFor(l);
+      }
+      final maxStars = s.count * 3;
+      final perfected = completed == s.count && stars == maxStars;
+      final isCurrent = state.unlocked >= s.start && state.unlocked <= s.end;
+      final progress = s.count == 0 ? 0.0 : completed / s.count;
+      final pulse = 0.5 + 0.5 * math.sin(_loop.value * 2 * math.pi);
+
+      // Pulsing glow ring behind the current world.
+      if (isCurrent) {
+        const halo = 150.0;
+        widgets.add(
+          Positioned(
+            left: p.dx - halo / 2,
+            top: p.dy - halo / 2,
+            child: IgnorePointer(
+              child: Opacity(
+                opacity: 0.35 + 0.35 * pulse,
+                child: Container(
+                  width: halo,
+                  height: halo,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        s.shadow.withValues(alpha: 0.55),
+                        s.shadow.withValues(alpha: 0),
+                      ],
+                      stops: const [0.25, 1],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      }
+
+      // The island stop.
+      widgets.add(
+        Positioned(
+          left: p.dx - _node / 2,
+          top: p.dy - _node / 2,
+          child: _IslandStop(
+            section: s,
+            unlocked: unlocked,
+            perfected: perfected,
+            progress: progress,
+            diameter: _node,
+            onTap: unlocked
+                ? () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => WorldMapScreen(section: s),
+                    ),
+                  )
+                : null,
+          ),
+        ),
+      );
+
+      // "PLAYING" pin above the current world.
+      if (isCurrent) {
+        widgets.add(
+          Positioned(
+            left: p.dx - 38,
+            top: p.dy - _node / 2 - 30 - 3 * pulse,
+            width: 76,
+            child: const IgnorePointer(child: Center(child: _PlayPin())),
+          ),
+        );
+      }
+
+      // Name + stars label below the island.
+      widgets.add(
+        Positioned(
+          left: p.dx - 90,
+          top: p.dy + _node / 2 + 8,
+          width: 180,
+          child: Center(
+            child: _StopLabel(
+              section: s,
+              unlocked: unlocked,
+              stars: stars,
+              maxStars: maxStars,
+            ),
+          ),
+        ),
+      );
+    }
+    return widgets;
+  }
 }
 
-class _WorldCard extends StatefulWidget {
-  const _WorldCard({required this.section, required this.state});
+/// A glossy circular "island" for one world, with a progress ring, emoji, and
+/// lock / crown states.
+class _IslandStop extends StatefulWidget {
+  const _IslandStop({
+    required this.section,
+    required this.unlocked,
+    required this.perfected,
+    required this.progress,
+    required this.diameter,
+    required this.onTap,
+  });
 
   final GameSection section;
-  final GameState state;
+  final bool unlocked;
+  final bool perfected;
+  final double progress;
+  final double diameter;
+  final VoidCallback? onTap;
 
   @override
-  State<_WorldCard> createState() => _WorldCardState();
+  State<_IslandStop> createState() => _IslandStopState();
 }
 
-class _WorldCardState extends State<_WorldCard> {
+class _IslandStopState extends State<_IslandStop> {
   bool _down = false;
-  static const double _depth = 8;
 
   @override
   Widget build(BuildContext context) {
     final s = widget.section;
-    final state = widget.state;
-    final unlocked = state.isUnlocked(s.start);
+    final d = widget.diameter;
+    final grad = widget.unlocked ? s.gradient : AppColors.lockedCard;
+    final shadow = widget.unlocked ? s.shadow : AppColors.lockedShadow;
 
-    var completed = 0;
-    var stars = 0;
-    for (var l = s.start; l <= s.end; l++) {
-      if (state.starsFor(l) > 0) completed++;
-      stars += state.starsFor(l);
-    }
-    final maxStars = s.count * 3;
-    final isCurrent = state.unlocked >= s.start && state.unlocked <= s.end;
-    final perfected = completed == s.count && stars == maxStars;
-    final progress = s.count == 0 ? 0.0 : completed / s.count;
-
-    final gradient = unlocked ? s.gradient : AppColors.lockedCard;
-    final shadow = unlocked ? s.shadow : AppColors.lockedShadow;
-    final press = _down ? _depth - 2 : 0.0;
-    final br = BorderRadius.circular(28);
-
-    void setDown(bool v) => setState(() => _down = v);
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 18),
-      child: GestureDetector(
-        onTapDown: unlocked ? (_) => setDown(true) : null,
-        onTapUp: unlocked ? (_) => setDown(false) : null,
-        onTapCancel: () => setDown(false),
-        onTap: unlocked
-            ? () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => WorldMapScreen(section: s)),
-              )
-            : null,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 60),
-          curve: Curves.easeOut,
-          height: 138,
-          transform: Matrix4.translationValues(0, press, 0),
-          decoration: BoxDecoration(
-            borderRadius: br,
-            boxShadow: [
-              BoxShadow(color: shadow, offset: Offset(0, _depth - press)),
-              BoxShadow(
-                color: shadow.withValues(alpha: 0.45),
-                offset: Offset(0, _depth + 6 - press),
-                blurRadius: 16,
-              ),
-              if (perfected)
-                const BoxShadow(
-                  color: Color(0x66FFD23F),
-                  blurRadius: 22,
-                  spreadRadius: 1,
+    return GestureDetector(
+      onTapDown: widget.onTap != null
+          ? (_) => setState(() => _down = true)
+          : null,
+      onTapUp: widget.onTap != null
+          ? (_) => setState(() => _down = false)
+          : null,
+      onTapCancel: () => setState(() => _down = false),
+      onTap: widget.onTap,
+      child: AnimatedScale(
+        scale: _down ? 0.93 : 1,
+        duration: const Duration(milliseconds: 80),
+        curve: Curves.easeOut,
+        child: SizedBox(
+          width: d,
+          height: d,
+          child: Stack(
+            alignment: Alignment.center,
+            clipBehavior: Clip.none,
+            children: [
+              // Progress ring.
+              CustomPaint(
+                size: Size(d, d),
+                painter: _RingPainter(
+                  progress: widget.unlocked ? widget.progress : 0,
                 ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: br,
-            child: Stack(
-              children: [
-                // Gradient face.
-                Positioned.fill(
-                  child: DecoratedBox(
+              ),
+              // Island body.
+              Container(
+                width: d - 16,
+                height: d - 16,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: grad,
+                  ),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.75),
+                    width: 3,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: shadow.withValues(alpha: 0.55),
+                      blurRadius: 10,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: Text(
+                    s.emoji,
+                    style: TextStyle(
+                      fontSize: 34,
+                      color: Colors.white.withValues(
+                        alpha: widget.unlocked ? 1 : 0.5,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              // Glossy top highlight.
+              Positioned(
+                top: 12,
+                child: IgnorePointer(
+                  child: Container(
+                    width: d * 0.42,
+                    height: d * 0.22,
                     decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(40),
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
-                        colors: gradient,
-                      ),
-                    ),
-                  ),
-                ),
-                // Big faded emoji watermark.
-                Positioned(
-                  right: -18,
-                  bottom: -24,
-                  child: Opacity(
-                    opacity: unlocked ? 0.22 : 0.12,
-                    child: Transform.rotate(
-                      angle: -0.25,
-                      child: Text(
-                        s.emoji,
-                        style: const TextStyle(fontSize: 130),
-                      ),
-                    ),
-                  ),
-                ),
-                // Top gloss.
-                Positioned.fill(
-                  child: Align(
-                    alignment: Alignment.topCenter,
-                    child: FractionallySizedBox(
-                      heightFactor: 0.45,
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              Colors.white.withValues(alpha: 0.28),
-                              Colors.white.withValues(alpha: 0),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                // Content.
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      _Medallion(
-                        number: s.index + 1,
-                        progress: progress,
-                        unlocked: unlocked,
-                        perfected: perfected,
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: _info(
-                          s,
-                          unlocked,
-                          isCurrent,
-                          completed,
-                          stars,
-                          maxStars,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Icon(
-                        unlocked
-                            ? Icons.chevron_right_rounded
-                            : Icons.lock_rounded,
-                        color: Colors.white.withValues(alpha: 0.9),
-                        size: 26,
-                      ),
-                    ],
-                  ),
-                ),
-                // "Playing now" ribbon.
-                if (isCurrent)
-                  Positioned(
-                    top: 12,
-                    right: 12,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 3,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.12),
-                            blurRadius: 4,
-                            offset: const Offset(0, 2),
-                          ),
+                        colors: [
+                          Colors.white.withValues(alpha: 0.55),
+                          Colors.white.withValues(alpha: 0),
                         ],
                       ),
-                      child: Text(
-                        'PLAYING',
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 0.5,
-                          color: s.shadow,
+                    ),
+                  ),
+                ),
+              ),
+              // Lock overlay.
+              if (!widget.unlocked)
+                const Icon(Icons.lock_rounded, color: Colors.white, size: 26),
+              // World number badge.
+              if (widget.unlocked)
+                Positioned(
+                  bottom: 4,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 1,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.15),
+                          blurRadius: 3,
+                          offset: const Offset(0, 1),
                         ),
+                      ],
+                    ),
+                    child: Text(
+                      '${s.index + 1}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        color: shadow,
                       ),
                     ),
                   ),
-              ],
-            ),
+                ),
+              // Crown for a fully-perfected world.
+              if (widget.perfected)
+                Positioned(
+                  top: -14,
+                  child: Text('👑', style: TextStyle(fontSize: 22)),
+                ),
+            ],
           ),
         ),
       ),
     );
   }
-
-  Widget _info(
-    GameSection s,
-    bool unlocked,
-    bool isCurrent,
-    int completed,
-    int stars,
-    int maxStars,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          'WORLD ${s.index + 1}',
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 1.5,
-            color: Colors.white.withValues(alpha: 0.8),
-          ),
-        ),
-        Text(
-          s.name,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(
-            fontSize: 21,
-            height: 1.05,
-            fontWeight: FontWeight.w700,
-            color: Colors.white,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          unlocked
-              ? 'Levels ${s.start + 1}–${s.end + 1}'
-              : 'Unlock at level ${s.start + 1}',
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-            color: Colors.white.withValues(alpha: 0.85),
-          ),
-        ),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            const Text(
-              '★',
-              style: TextStyle(fontSize: 15, color: Color(0xFFFFE08A)),
-            ),
-            const SizedBox(width: 3),
-            Text(
-              '$stars / $maxStars',
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(width: 10),
-            Text(
-              '$completed/${s.count} done',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: Colors.white.withValues(alpha: 0.8),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
 }
 
-/// Glossy circular world medallion with a star/levels progress ring.
-class _Medallion extends StatelessWidget {
-  const _Medallion({
-    required this.number,
-    required this.progress,
+/// Readable white pill under each island: world name + star count (or "Locked").
+class _StopLabel extends StatelessWidget {
+  const _StopLabel({
+    required this.section,
     required this.unlocked,
-    required this.perfected,
+    required this.stars,
+    required this.maxStars,
   });
 
-  final int number;
-  final double progress;
+  final GameSection section;
   final bool unlocked;
-  final bool perfected;
+  final int stars;
+  final int maxStars;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 74,
-      height: 74,
-      child: Stack(
-        alignment: Alignment.center,
+    final s = section;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.12),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          CustomPaint(
-            size: const Size(74, 74),
-            painter: _RingPainter(progress: unlocked ? progress : 0),
+          Text(
+            s.name,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 14,
+              height: 1.1,
+              fontWeight: FontWeight.w800,
+              color: unlocked ? s.shadow : AppColors.muted,
+            ),
           ),
-          Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: RadialGradient(
-                center: const Alignment(-0.3, -0.4),
-                colors: [
-                  Colors.white.withValues(alpha: 0.55),
-                  Colors.white.withValues(alpha: 0.18),
-                ],
+          const SizedBox(height: 1),
+          if (unlocked)
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  '★',
+                  style: TextStyle(fontSize: 12, color: Color(0xFFFFB020)),
+                ),
+                const SizedBox(width: 3),
+                Text(
+                  '$stars/$maxStars',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.body,
+                  ),
+                ),
+              ],
+            )
+          else
+            Text(
+              'Unlock at level ${s.start + 1}',
+              style: const TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                color: AppColors.muted,
               ),
-            ),
-            child: Center(
-              child: unlocked
-                  ? Text(
-                      '$number',
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                        shadows: [
-                          Shadow(
-                            color: Color(0x33000000),
-                            offset: Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                    )
-                  : const Icon(
-                      Icons.lock_rounded,
-                      color: Colors.white,
-                      size: 24,
-                    ),
-            ),
-          ),
-          if (perfected)
-            const Positioned(
-              top: -2,
-              child: Text('👑', style: TextStyle(fontSize: 22)),
             ),
         ],
       ),
@@ -533,6 +578,135 @@ class _Medallion extends StatelessWidget {
   }
 }
 
+/// A little "PLAY" pin (teardrop marker) that hovers over the current world.
+class _PlayPin extends StatelessWidget {
+  const _PlayPin();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [AppColors.pinkLight, AppColors.pink],
+            ),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.pinkShadow,
+                blurRadius: 6,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.play_arrow_rounded, color: Colors.white, size: 16),
+              SizedBox(width: 2),
+              Text(
+                'PLAY',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.5,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        ),
+        // Tail.
+        Transform.translate(
+          offset: const Offset(0, -1),
+          child: CustomPaint(
+            size: const Size(12, 7),
+            painter: _PinTailPainter(),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _PinTailPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final path = Path()
+      ..moveTo(0, 0)
+      ..lineTo(size.width, 0)
+      ..lineTo(size.width / 2, size.height)
+      ..close();
+    canvas.drawPath(path, Paint()..color = AppColors.pink);
+  }
+
+  @override
+  bool shouldRepaint(_PinTailPainter oldDelegate) => false;
+}
+
+/// The flowing candy road that threads through every world stop.
+class _TrailPainter extends CustomPainter {
+  _TrailPainter(this.points, this.t);
+  final List<Offset> points;
+  final double t;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (points.length < 2) return;
+
+    // Smooth path through the stops.
+    final path = Path()..moveTo(points.first.dx, points.first.dy);
+    for (var i = 0; i < points.length - 1; i++) {
+      final p0 = points[i];
+      final p1 = points[i + 1];
+      final mid = Offset((p0.dx + p1.dx) / 2, (p0.dy + p1.dy) / 2);
+      path.quadraticBezierTo(p0.dx, p0.dy, mid.dx, mid.dy);
+    }
+    path.lineTo(points.last.dx, points.last.dy);
+
+    // Outer white casing.
+    canvas.drawPath(
+      path,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 22
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round
+        ..color = Colors.white.withValues(alpha: 0.6),
+    );
+    // Inner pink ribbon.
+    canvas.drawPath(
+      path,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 11
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round
+        ..color = const Color(0x55FF7AB0),
+    );
+
+    // Flowing dots travelling down the road.
+    final dot = Paint()..color = Colors.white;
+    for (final metric in path.computeMetrics()) {
+      var d = (t * 28) % 28;
+      while (d < metric.length) {
+        final tan = metric.getTangentForOffset(d);
+        if (tan != null) canvas.drawCircle(tan.position, 3, dot);
+        d += 28;
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(_TrailPainter old) => old.t != t || old.points != points;
+}
+
+/// Circular progress ring drawn around an island stop.
 class _RingPainter extends CustomPainter {
   _RingPainter({required this.progress});
   final double progress;
@@ -541,24 +715,25 @@ class _RingPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final center = size.center(Offset.zero);
     final radius = size.width / 2 - 3;
-    final track = Paint()
-      ..color = Colors.white.withValues(alpha: 0.3)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 5;
-    canvas.drawCircle(center, radius, track);
-
-    if (progress > 0) {
-      final arc = Paint()
-        ..color = Colors.white
+    canvas.drawCircle(
+      center,
+      radius,
+      Paint()
+        ..color = Colors.white.withValues(alpha: 0.35)
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 5
-        ..strokeCap = StrokeCap.round;
+        ..strokeWidth = 5,
+    );
+    if (progress > 0) {
       canvas.drawArc(
         Rect.fromCircle(center: center, radius: radius),
         -math.pi / 2,
         2 * math.pi * progress.clamp(0, 1),
         false,
-        arc,
+        Paint()
+          ..color = Colors.white
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 5
+          ..strokeCap = StrokeCap.round,
       );
     }
   }

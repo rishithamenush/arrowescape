@@ -17,7 +17,7 @@ BubbleEngine _engine() {
 
 void main() {
   testWidgets('App boots to the Bubble Pop home screen', (tester) async {
-    await tester.pumpWidget(const BubblePopApp());
+    await tester.pumpWidget(BubblePopApp(state: GameState()));
     await tester.pump();
     expect(find.text('Play'), findsOneWidget);
     expect(find.text('Bubble\nPop'), findsOneWidget);

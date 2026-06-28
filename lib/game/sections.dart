@@ -93,24 +93,6 @@ class GameSection {
     'Final Frosting',
   ];
 
-  static const List<List<Color>> _grads = [
-    [Color(0xFFFF9EC1), Color(0xFFFF5C97)],
-    [Color(0xFFFFD76B), Color(0xFFFF9A3D)],
-    [Color(0xFF7FE0F0), Color(0xFF2FB6D6)],
-    [Color(0xFF9BE8B5), Color(0xFF3DDC84)],
-    [Color(0xFFCDAEFF), Color(0xFF9B6BFF)],
-    [Color(0xFF9BE8F5), Color(0xFF3EC8E0)],
-  ];
-
-  static const List<Color> _shadows = [
-    Color(0xFFD62F76),
-    Color(0xFFD77A1E),
-    Color(0xFF1F8FB0),
-    Color(0xFF1EA65C),
-    Color(0xFF6E3FC4),
-    Color(0xFF1F96AC),
-  ];
-
   // One emoji per world (paired with the names above).
   static const List<String> _emojis = [
     '🍬', '🐻', '🍫', '🫐', '🌿', '🍭', '🍮', '🫧', '🍧', '🧁', //
@@ -126,8 +108,20 @@ class GameSection {
       index < _names.length ? _names[index] : 'Sweet Spot ${index + 1}';
 
   String get emoji => index < _emojis.length ? _emojis[index] : '🍬';
-  List<Color> get gradient => _grads[index % _grads.length];
-  Color get shadow => _shadows[index % _shadows.length];
+
+  /// Each world gets its own hue. The golden-angle step (137.508°) spreads
+  /// consecutive worlds far apart on the colour wheel, so neighbouring cards
+  /// look totally different while every world stays a vivid candy tone.
+  double get _hue => (index * 137.508) % 360;
+
+  /// Top→bottom card gradient: a bright tint into a saturated base of the hue.
+  List<Color> get gradient => [
+    HSLColor.fromAHSL(1, _hue, 0.82, 0.72).toColor(),
+    HSLColor.fromAHSL(1, _hue, 0.85, 0.55).toColor(),
+  ];
+
+  /// A deeper shade of the same hue, used for the card's drop shadow / accents.
+  Color get shadow => HSLColor.fromAHSL(1, _hue, 0.70, 0.42).toColor();
 }
 
 List<GameSection> buildSections() => [

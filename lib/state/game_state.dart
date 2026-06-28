@@ -4,6 +4,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../core/audio_service.dart';
 import '../game/levels.dart';
 
+/// TESTING ONLY: when true, every level is treated as unlocked regardless of
+/// saved progress. Set back to `false` before shipping.
+const bool kUnlockAllForTesting = true;
+
 /// App-wide progress + settings for Bubble Pop. Progress is persisted to
 /// [SharedPreferences] so completed levels and earned stars survive restarts.
 class GameState extends ChangeNotifier {
@@ -41,7 +45,7 @@ class GameState extends ChangeNotifier {
     notifyListeners();
   }
 
-  bool isUnlocked(int i) => i <= unlocked;
+  bool isUnlocked(int i) => kUnlockAllForTesting || i <= unlocked;
   int starsFor(int i) => i >= 0 && i < progress.length ? progress[i] : 0;
 
   void recordWin({required int level, required int stars}) {
