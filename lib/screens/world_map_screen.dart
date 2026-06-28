@@ -77,9 +77,11 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    s.gradient.first.withValues(alpha: 0.4),
+                    s.gradient.first.withValues(alpha: 0.55),
+                    s.gradient.last.withValues(alpha: 0.22),
                     AppColors.bg.last,
                   ],
+                  stops: const [0, 0.45, 1],
                 ),
               ),
             ),
@@ -116,12 +118,18 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                           height: mapHeight,
                           child: Stack(
                             children: [
+                              // Themed emoji decorations behind the path.
+                              ..._decor(s, mapHeight),
                               // Flowing road.
                               Positioned.fill(
                                 child: AnimatedBuilder(
                                   animation: _loop,
                                   builder: (_, __) => CustomPaint(
-                                    painter: _RoadPainter(points, _loop.value),
+                                    painter: _RoadPainter(
+                                      points,
+                                      _loop.value,
+                                      s.shadow,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -298,6 +306,33 @@ class _WorldMapScreenState extends State<WorldMapScreen>
     );
   }
 
+  /// Big faded world-emoji watermarks scattered down the sides of the map to
+  /// give each world its own themed feel.
+  List<Widget> _decor(GameSection s, double mapHeight) {
+    final widgets = <Widget>[];
+    final count = (mapHeight / 300).floor().clamp(2, 30);
+    for (var i = 0; i < count; i++) {
+      final left = i.isEven;
+      widgets.add(
+        Positioned(
+          left: left ? -14 : null,
+          right: left ? null : -14,
+          top: 130.0 + i * 300.0,
+          child: IgnorePointer(
+            child: Opacity(
+              opacity: 0.13,
+              child: Transform.rotate(
+                angle: left ? -0.22 : 0.22,
+                child: Text(s.emoji, style: const TextStyle(fontSize: 104)),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+    return widgets;
+  }
+
   List<Widget> _nodes(
     GameState state,
     GameSection s,
@@ -419,6 +454,8 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                 locked: locked,
                 current: current,
                 size: _node,
+                gradient: locked ? AppColors.lockedCard : s.gradient,
+                shadow: locked ? AppColors.lockedShadow : s.shadow,
                 onTap: locked
                     ? null
                     : () => Navigator.of(context).push(
@@ -575,6 +612,8 @@ class _LevelNode extends StatelessWidget {
     required this.locked,
     required this.current,
     required this.size,
+    required this.gradient,
+    required this.shadow,
     required this.onTap,
   });
 
@@ -582,17 +621,12 @@ class _LevelNode extends StatelessWidget {
   final bool locked;
   final bool current;
   final double size;
+  final List<Color> gradient;
+  final Color shadow;
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    final gradient = locked
-        ? AppColors.lockedCard
-        : AppColors.levelCards[index % AppColors.levelCards.length];
-    final shadow = locked
-        ? AppColors.lockedShadow
-        : AppColors.levelShadow[index % AppColors.levelShadow.length];
-
     return CandyButton(
       gradient: gradient,
       shadow: shadow,
@@ -711,9 +745,10 @@ class _PulseRingState extends State<_PulseRing>
 }
 
 class _RoadPainter extends CustomPainter {
-  _RoadPainter(this.points, this.phase);
+  _RoadPainter(this.points, this.phase, this.theme);
   final List<Offset> points;
   final double phase;
+  final Color theme;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -725,10 +760,11 @@ class _RoadPainter extends CustomPainter {
       path.cubicTo(a.dx, midY, b.dx, midY, b.dx, b.dy);
     }
 
+    // Road edge tinted slightly toward the world's colour.
     canvas.drawPath(
       path,
       Paint()
-        ..color = const Color(0xFFE0B98C)
+        ..color = Color.lerp(const Color(0xFFE0B98C), theme, 0.30)!
         ..style = PaintingStyle.stroke
         ..strokeWidth = 30
         ..strokeCap = StrokeCap.round
@@ -766,5 +802,5 @@ class _RoadPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _RoadPainter old) =>
-      old.points != points || old.phase != phase;
+      old.points != points || old.phase != phase || old.theme != theme;
 }
