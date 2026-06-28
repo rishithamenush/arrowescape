@@ -19,6 +19,7 @@ class GameSection {
       : kLevels.length - start;
   int get end => start + count - 1;
 
+  // A unique, themed name for every world.
   static const List<String> _names = [
     'Candy Town',
     'Gummy Grove',
@@ -30,6 +31,66 @@ class GameSection {
     'Bubble Banks',
     'Sherbet Springs',
     'Frosting Fields',
+    'Marshmallow Marsh',
+    'Jellybean Junction',
+    'Cupcake Canyon',
+    'Peppermint Peak',
+    'Toffee Trail',
+    'Sugarplum Sands',
+    'Fudge Forest',
+    'Licorice Lagoon',
+    'Honeycomb Hills',
+    'Cotton Cloud',
+    'Macaron Mesa',
+    'Truffle Tundra',
+    'Sprinkle Shores',
+    'Nougat Nook',
+    'Donut Delta',
+    'Waffle Woods',
+    'Custard Caverns',
+    'Praline Prairie',
+    'Sorbet Summit',
+    'Brittle Bluff',
+    'Gumdrop Gully',
+    'Meringue Mount',
+    'Butterscotch Bend',
+    'Pudding Plains',
+    'Taffy Town',
+    'Eclair Estuary',
+    'Pretzel Pass',
+    'Vanilla Valley',
+    'Cocoa Crater',
+    'Bonbon Beach',
+    'Lemonade Lake',
+    'Pixie Pop Park',
+    'Jelly Jungle',
+    'Cocoa Coast',
+    'Sundae Slopes',
+    'Raspberry Reef',
+    'Cinnamon City',
+    'Marzipan Marsh',
+    'Glaze Glacier',
+    'Sugar Skies',
+    'Wafer Wharf',
+    'Cobbler Crossing',
+    'Parfait Point',
+    'Mochi Mountain',
+    'Twist Tower',
+    'Drizzle Den',
+    'Frappe Falls',
+    'Biscuit Basin',
+    'Gelato Gardens',
+    'Sprinkle Summit',
+    'Caramel Keys',
+    'Berry Burrow',
+    'Choco Harbor',
+    'Minty Marina',
+    'Bubblegum Bluff',
+    'Sweet Citadel',
+    "Rainbow's End",
+    'Candy Kingdom',
+    'Sugar Galaxy',
+    'Final Frosting',
   ];
 
   static const List<List<Color>> _grads = [
@@ -50,26 +111,21 @@ class GameSection {
     Color(0xFF1F96AC),
   ];
 
+  // One emoji per world (paired with the names above).
   static const List<String> _emojis = [
-    '🍬',
-    '🐻',
-    '🍫',
-    '🫐',
-    '🌿',
-    '🍭',
-    '🍮',
-    '🫧',
-    '🍧',
-    '🧁',
+    '🍬', '🐻', '🍫', '🫐', '🌿', '🍭', '🍮', '🫧', '🍧', '🧁', //
+    '☁️', '🫘', '🧁', '🥁', '🍯', '🍇', '🌲', '🌊', '🍯', '⛅', //
+    '🍪', '🍫', '🎉', '🥜', '🍩', '🧇', '🍮', '🌾', '🍨', '🪨', //
+    '🟢', '⛰️', '🧈', '🍮', '🍭', '🥐', '🥨', '🌼', '🌋', '🏖️', //
+    '🍋', '✨', '🍮', '🌊', '🍨', '🫐', '🏙️', '🌰', '🧊', '🌈', //
+    '🧇', '🥧', '🍨', '🍡', '🌀', '🍯', '🥤', '🍪', '🍨', '⛰️', //
+    '🗝️', '🍓', '⚓', '⛵', '🎈', '🏰', '🌈', '👑', '🌌', '🏁', //
   ];
 
-  String get name {
-    final base = _names[index % _names.length];
-    final cycle = index ~/ _names.length;
-    return cycle == 0 ? base : '$base ${cycle + 1}';
-  }
+  String get name =>
+      index < _names.length ? _names[index] : 'Sweet Spot ${index + 1}';
 
-  String get emoji => _emojis[index % _emojis.length];
+  String get emoji => index < _emojis.length ? _emojis[index] : '🍬';
   List<Color> get gradient => _grads[index % _grads.length];
   Color get shadow => _shadows[index % _shadows.length];
 }
