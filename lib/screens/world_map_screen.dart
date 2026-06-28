@@ -609,7 +609,7 @@ class _Pennant extends CustomClipper<Path> {
   bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
 }
 
-class _LevelNode extends StatelessWidget {
+class _LevelNode extends StatefulWidget {
   const _LevelNode({
     required this.index,
     required this.locked,
@@ -629,32 +629,97 @@ class _LevelNode extends StatelessWidget {
   final VoidCallback? onTap;
 
   @override
+  State<_LevelNode> createState() => _LevelNodeState();
+}
+
+class _LevelNodeState extends State<_LevelNode> {
+  bool _down = false;
+
+  @override
   Widget build(BuildContext context) {
-    return CandyButton(
-      gradient: gradient,
-      shadow: shadow,
-      radius: size / 2,
-      depth: 6,
-      padding: EdgeInsets.zero,
-      onTap: onTap ?? () {},
-      child: SizedBox(
-        width: size,
-        height: size,
-        child: Center(
-          child: locked
-              ? const Icon(Icons.lock_rounded, color: Colors.white, size: 26)
-              : Text(
-                  '${index + 1}',
-                  style: TextStyle(
-                    fontSize: current ? 24 : 22,
-                    height: 1,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                    shadows: const [
-                      Shadow(color: Color(0x33000000), offset: Offset(0, 2)),
-                    ],
+    final d = widget.size;
+    final enabled = widget.onTap != null;
+    return GestureDetector(
+      onTapDown: enabled ? (_) => setState(() => _down = true) : null,
+      onTapUp: enabled ? (_) => setState(() => _down = false) : null,
+      onTapCancel: () => setState(() => _down = false),
+      onTap: widget.onTap,
+      child: AnimatedScale(
+        scale: _down ? 0.92 : 1,
+        duration: const Duration(milliseconds: 80),
+        curve: Curves.easeOut,
+        child: SizedBox(
+          width: d,
+          height: d,
+          child: Stack(
+            alignment: Alignment.center,
+            clipBehavior: Clip.none,
+            children: [
+              // Glossy island body.
+              Container(
+                width: d,
+                height: d,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: widget.gradient,
+                  ),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.8),
+                    width: 3,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: widget.shadow.withValues(alpha: 0.55),
+                      blurRadius: 9,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
+                ),
+              ),
+              // Top gloss highlight.
+              Positioned(
+                top: d * 0.15,
+                child: IgnorePointer(
+                  child: Container(
+                    width: d * 0.46,
+                    height: d * 0.24,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(40),
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.white.withValues(alpha: 0.55),
+                          Colors.white.withValues(alpha: 0),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
+              ),
+              // Number or lock.
+              widget.locked
+                  ? Icon(Icons.lock_rounded, color: Colors.white, size: d * 0.4)
+                  : Text(
+                      '${widget.index + 1}',
+                      style: TextStyle(
+                        fontSize: widget.current ? d * 0.4 : d * 0.36,
+                        height: 1,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                        shadows: const [
+                          Shadow(
+                            color: Color(0x40000000),
+                            offset: Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                    ),
+            ],
+          ),
         ),
       ),
     );
@@ -850,42 +915,35 @@ class _RoadPainter extends CustomPainter {
       path.cubicTo(a.dx, midY, b.dx, midY, b.dx, b.dy);
     }
 
-    // Road edge tinted slightly toward the world's colour.
+    // Candy ribbon matching the Worlds trail: white casing + a themed ribbon
+    // tinted to this world's colour, with white dots flowing along it.
     canvas.drawPath(
       path,
       Paint()
-        ..color = Color.lerp(const Color(0xFFE0B98C), theme, 0.30)!
+        ..color = Colors.white.withValues(alpha: 0.62)
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 30
+        ..strokeWidth = 26
         ..strokeCap = StrokeCap.round
         ..strokeJoin = StrokeJoin.round,
     );
     canvas.drawPath(
       path,
       Paint()
-        ..color = const Color(0xFFF6DEBE)
+        ..color = theme.withValues(alpha: 0.40)
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 24
+        ..strokeWidth = 13
         ..strokeCap = StrokeCap.round
         ..strokeJoin = StrokeJoin.round,
     );
 
-    // Flowing dashed centre line.
-    final dashPaint = Paint()
-      ..color = const Color(0xCCFFFFFF)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 4
-      ..strokeCap = StrokeCap.round;
-    const on = 10.0, off = 14.0;
+    // Flowing dots travelling along the road.
+    final dot = Paint()..color = Colors.white;
     for (final metric in path.computeMetrics()) {
-      var d = -phase * (on + off); // animate the dash offset
+      var d = (phase * 30) % 30;
       while (d < metric.length) {
-        final start = math.max(0.0, d);
-        final end = math.min(d + on, metric.length);
-        if (end > start) {
-          canvas.drawPath(metric.extractPath(start, end), dashPaint);
-        }
-        d += on + off;
+        final tan = metric.getTangentForOffset(d);
+        if (tan != null) canvas.drawCircle(tan.position, 3.2, dot);
+        d += 30;
       }
     }
   }
