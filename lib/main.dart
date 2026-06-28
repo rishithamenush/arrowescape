@@ -6,22 +6,26 @@ import 'core/theme.dart';
 import 'screens/home_screen.dart';
 import 'state/game_state.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   AudioService.instance.init();
-  runApp(const BubblePopApp());
+  final state = GameState();
+  await state.load();
+  runApp(BubblePopApp(state: state));
 }
 
 class BubblePopApp extends StatefulWidget {
-  const BubblePopApp({super.key});
+  const BubblePopApp({super.key, required this.state});
+
+  final GameState state;
 
   @override
   State<BubblePopApp> createState() => _BubblePopAppState();
 }
 
 class _BubblePopAppState extends State<BubblePopApp> {
-  final GameState _state = GameState();
+  late final GameState _state = widget.state;
 
   @override
   void dispose() {
