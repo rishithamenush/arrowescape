@@ -28,7 +28,7 @@ class HomeScreen extends StatelessWidget {
                     height: 210,
                     fit: BoxFit.contain,
                   ),
-                  const Spacer(),
+                  const SizedBox(height: 14),
                   const Text(
                     'SWEET',
                     style: TextStyle(
