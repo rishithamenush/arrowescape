@@ -66,15 +66,15 @@ class HomeScreen extends StatelessWidget {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 10),
-                    const Text(
-                      'Aim • Match 3 • Clear the board',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.body,
-                      ),
-                    ),
+                    // const SizedBox(height: 10),
+                    // const Text(
+                    //   'Aim • Match 3 • Clear the board',
+                    //   style: TextStyle(
+                    //     fontSize: 16,
+                    //     fontWeight: FontWeight.w500,
+                    //     color: AppColors.body,
+                    //   ),
+                    // ),
                     const SizedBox(height: 34),
                     _glassPlayButton(
                       onTap: () => Navigator.of(context).push(
@@ -85,14 +85,19 @@ class HomeScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 18),
                     const SizedBox(
-                      width: 240,
+                      width: 250,
                       child: Text(
                         'Drag to aim, release to shoot. Pop three or more of a color to clear them.',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                          color: AppColors.muted,
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.heading,
+                          height: 1.35,
+                          shadows: [
+                            Shadow(color: Colors.white, blurRadius: 6),
+                            Shadow(color: Colors.white, blurRadius: 6),
+                          ],
                         ),
                       ),
                     ),
