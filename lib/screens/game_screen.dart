@@ -12,6 +12,7 @@ import '../game/levels.dart';
 import '../game/sections.dart';
 import '../state/game_state.dart';
 import '../widgets/candy.dart';
+import '../widgets/liquid_glass.dart';
 
 enum _Phase { playing, pause, win, lose }
 
@@ -337,23 +338,11 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
-  Widget _softPill({required Widget child}) => Container(
+  Widget _softPill({required Widget child}) => LiquidGlass(
+    radius: 20,
+    blur: 14,
+    opacity: 0.5,
     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-    decoration: BoxDecoration(
-      gradient: const LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [Colors.white, Color(0xFFF3F1FF)],
-      ),
-      borderRadius: BorderRadius.circular(20),
-      boxShadow: [
-        BoxShadow(
-          color: AppColors.heading.withValues(alpha: 0.12),
-          blurRadius: 10,
-          offset: const Offset(0, 4),
-        ),
-      ],
-    ),
     child: child,
   );
 
@@ -405,14 +394,9 @@ class _GameScreenState extends State<GameScreen> {
     required VoidCallback onTap,
     required IconData icon,
     Color color = AppColors.accent,
-    Color bg = Colors.white,
   }) {
-    return CandyButton(
-      color: bg,
-      shadow: AppColors.pillShadow,
+    return _GlassButton(
       radius: 21,
-      depth: 3,
-      padding: EdgeInsets.zero,
       onTap: onTap,
       child: SizedBox(
         width: 42,
@@ -616,21 +600,15 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
-  Widget _card({required List<Widget> children}) => Container(
+  Widget _card({required List<Widget> children}) => SizedBox(
     width: MediaQuery.sizeOf(context).width * 0.8,
-    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(28),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black.withValues(alpha: 0.3),
-          blurRadius: 40,
-          offset: const Offset(0, 18),
-        ),
-      ],
+    child: LiquidGlass(
+      radius: 28,
+      blur: 24,
+      opacity: 0.82,
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+      child: Column(mainAxisSize: MainAxisSize.min, children: children),
     ),
-    child: Column(mainAxisSize: MainAxisSize.min, children: children),
   );
 
   Widget _pauseOverlay() => _scrim(
@@ -827,6 +805,50 @@ class _GameScreenState extends State<GameScreen> {
       );
 }
 
+/// A tappable Liquid-Glass surface with a springy press-scale, used for the
+/// round HUD / bottom-bar controls so they match the app's frosted theme.
+class _GlassButton extends StatefulWidget {
+  const _GlassButton({
+    required this.child,
+    required this.onTap,
+    this.radius = 21,
+  });
+
+  final Widget child;
+  final VoidCallback onTap;
+  final double radius;
+
+  @override
+  State<_GlassButton> createState() => _GlassButtonState();
+}
+
+class _GlassButtonState extends State<_GlassButton> {
+  bool _down = false;
+  void _set(bool v) => setState(() => _down = v);
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => _set(true),
+      onTapUp: (_) => _set(false),
+      onTapCancel: () => _set(false),
+      onTap: widget.onTap,
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedScale(
+        scale: _down ? 0.9 : 1,
+        duration: const Duration(milliseconds: 80),
+        curve: Curves.easeOut,
+        child: LiquidGlass(
+          radius: widget.radius,
+          blur: 14,
+          opacity: 0.5,
+          child: widget.child,
+        ),
+      ),
+    );
+  }
+}
+
 class _PowerButton extends StatefulWidget {
   const _PowerButton({
     required this.label,
@@ -868,35 +890,36 @@ class _PowerButtonState extends State<_PowerButton> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Icon tile.
+              // Icon tile — frosted Liquid Glass, pink-tinted + ringed when armed.
               Stack(
                 clipBehavior: Clip.none,
                 children: [
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 140),
-                    width: 56,
-                    height: 56,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: armed
-                            ? AppColors.accent
-                            : const Color(0x14000000),
-                        width: armed ? 2.5 : 1,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: armed
-                              ? AppColors.accent.withValues(alpha: 0.4)
-                              : AppColors.heading.withValues(alpha: 0.14),
-                          blurRadius: armed ? 16 : 10,
-                          offset: const Offset(0, 5),
-                        ),
-                      ],
+                  LiquidGlass(
+                    radius: 20,
+                    blur: 14,
+                    opacity: armed ? 0.55 : 0.5,
+                    tint: armed ? AppColors.accent : null,
+                    child: SizedBox(
+                      width: 56,
+                      height: 56,
+                      child: Center(child: widget.icon),
                     ),
-                    child: Center(child: widget.icon),
                   ),
+                  // Bright accent ring while this power is selected.
+                  if (armed)
+                    Positioned.fill(
+                      child: IgnorePointer(
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: AppColors.accent,
+                              width: 2.5,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   // Count badge.
                   Positioned(
                     top: -5,

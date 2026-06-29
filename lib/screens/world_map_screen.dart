@@ -4,6 +4,7 @@ import '../core/theme.dart';
 import '../game/sections.dart';
 import '../state/game_state.dart';
 import '../widgets/candy.dart';
+import '../widgets/liquid_glass.dart';
 import 'game_screen.dart';
 
 /// A single world's level picker — a clean, glossy **grid of level tiles**
@@ -131,20 +132,20 @@ class _WorldMapScreenState extends State<WorldMapScreen> {
       padding: const EdgeInsets.fromLTRB(14, 10, 14, 8),
       child: Row(
         children: [
-          CandyButton(
-            color: AppColors.pill,
-            shadow: AppColors.softPinkShadow,
-            radius: 16,
-            depth: 4,
-            padding: EdgeInsets.zero,
+          GestureDetector(
             onTap: () => Navigator.of(context).pop(),
-            child: const SizedBox(
-              width: 46,
-              height: 46,
-              child: Icon(
-                Icons.chevron_left_rounded,
-                color: AppColors.accent,
-                size: 30,
+            behavior: HitTestBehavior.opaque,
+            child: const LiquidGlass(
+              radius: 16,
+              blur: 14,
+              child: SizedBox(
+                width: 46,
+                height: 46,
+                child: Icon(
+                  Icons.chevron_left_rounded,
+                  color: AppColors.accent,
+                  size: 30,
+                ),
               ),
             ),
           ),
