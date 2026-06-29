@@ -1,3 +1,5 @@
+import 'dart:ui' show ImageFilter;
+
 import 'package:flutter/material.dart';
 
 import '../core/theme.dart';
@@ -114,29 +116,33 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
           ),
-          // Audio controls tucked into the bottom-right corner.
+          // Audio controls — two separate liquid-glass pills at bottom-center.
           SafeArea(
             child: Align(
-              alignment: Alignment.bottomRight,
+              alignment: Alignment.bottomCenter,
               child: Padding(
-                padding: const EdgeInsets.only(bottom: 12, right: 12),
+                padding: const EdgeInsets.only(bottom: 14),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    _audioToggle(
-                      on: state.musicOn,
-                      onIcon: Icons.music_note_rounded,
-                      offIcon: Icons.music_off_rounded,
-                      label: 'Music',
-                      onTap: state.toggleMusic,
+                    _glassPill(
+                      child: _glassToggle(
+                        on: state.musicOn,
+                        onIcon: Icons.music_note_rounded,
+                        offIcon: Icons.music_off_rounded,
+                        label: 'Music',
+                        onTap: state.toggleMusic,
+                      ),
                     ),
-                    const SizedBox(width: 12),
-                    _audioToggle(
-                      on: state.soundOn,
-                      onIcon: Icons.volume_up_rounded,
-                      offIcon: Icons.volume_off_rounded,
-                      label: 'Sound',
-                      onTap: state.toggleSound,
+                    const SizedBox(width: 14),
+                    _glassPill(
+                      child: _glassToggle(
+                        on: state.soundOn,
+                        onIcon: Icons.volume_up_rounded,
+                        offIcon: Icons.volume_off_rounded,
+                        label: 'Sound',
+                        onTap: state.toggleSound,
+                      ),
                     ),
                   ],
                 ),
@@ -148,7 +154,85 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _audioToggle({
+  /// A single floating Liquid-Glass capsule wrapping one control.
+  Widget _glassPill({required Widget child}) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(30),
+        boxShadow: [
+          // Soft drop shadow so the glass floats.
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.14),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
+          ),
+          // Faint outer glow (liquid-glass halo).
+          BoxShadow(
+            color: Colors.white.withValues(alpha: 0.35),
+            blurRadius: 8,
+            spreadRadius: -2,
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(30),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+          child: Container(
+            padding: const EdgeInsets.all(5),
+            decoration: BoxDecoration(
+              // Diagonal refractive sheen instead of a flat fill.
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.white.withValues(alpha: 0.6),
+                  Colors.white.withValues(alpha: 0.22),
+                  Colors.white.withValues(alpha: 0.4),
+                ],
+                stops: const [0, 0.55, 1],
+              ),
+              borderRadius: BorderRadius.circular(30),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.7),
+                width: 1.3,
+              ),
+            ),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                // Bright specular highlight skimming the top edge.
+                Positioned(
+                  top: 0,
+                  left: 7,
+                  right: 7,
+                  child: IgnorePointer(
+                    child: Container(
+                      height: 8,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.white.withValues(alpha: 0.75),
+                            Colors.white.withValues(alpha: 0),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                child,
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _glassToggle({
     required bool on,
     required IconData onIcon,
     required IconData offIcon,
@@ -156,38 +240,27 @@ class HomeScreen extends StatelessWidget {
     required VoidCallback onTap,
   }) {
     final color = on ? AppColors.accent : AppColors.muted;
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        GestureDetector(
-          onTap: onTap,
-          child: Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: on ? 0.95 : 0.7),
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.12),
-                  blurRadius: 6,
-                  offset: const Offset(0, 2),
-                ),
-              ],
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(on ? onIcon : offIcon, size: 18, color: color),
+            const SizedBox(width: 7),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: on ? AppColors.body : AppColors.muted,
+              ),
             ),
-            child: Icon(on ? onIcon : offIcon, color: color, size: 19),
-          ),
+          ],
         ),
-        const SizedBox(height: 3),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 10,
-            fontWeight: FontWeight.w700,
-            color: on ? AppColors.body : AppColors.muted,
-          ),
-        ),
-      ],
+      ),
     );
   }
 }
