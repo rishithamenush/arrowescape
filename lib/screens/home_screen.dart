@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 
 import '../core/theme.dart';
 import '../state/game_state.dart';
-import '../widgets/candy.dart';
 import 'level_select_screen.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -20,99 +19,86 @@ class HomeScreen extends StatelessWidget {
           Positioned.fill(
             child: Image.asset('assets/boba/background.png', fit: BoxFit.cover),
           ),
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 32),
-              child: Column(
-                children: [
-                  const SizedBox(height: 50),
-                  // Boba — the app's main character, up top where there's space.
-                  Image.asset(
-                    'assets/boba/chara1.png',
-                    height: 210,
-                    fit: BoxFit.contain,
-                  ),
-                  const SizedBox(height: 14),
-                  const Text(
-                    'SWEET',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 6,
-                      color: AppColors.accent2,
+          Positioned.fill(
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const SizedBox(height: 80),
+                    // Boba — the app's main character.
+                    Image.asset(
+                      'assets/boba/chara1.png',
+                      height: 210,
+                      fit: BoxFit.contain,
                     ),
-                  ),
-                  const SizedBox(height: 6),
-                  ShaderMask(
-                    shaderCallback: (rect) => const LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Color(0xFFFFD23F),
-                        Color(0xFFFF7A9E),
-                        Color(0xFFFF4D8D),
-                      ],
-                      stops: [0, 0.55, 1],
-                    ).createShader(rect),
-                    child: const Text(
-                      'Bubble\nPop',
-                      textAlign: TextAlign.center,
+                    const SizedBox(height: 14),
+                    const Text(
+                      'SWEET',
                       style: TextStyle(
-                        fontSize: 64,
-                        height: 0.92,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  const Text(
-                    'Aim • Match 3 • Clear the board',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.body,
-                    ),
-                  ),
-                  const SizedBox(height: 34),
-                  CandyButton(
-                    gradient: const [AppColors.pinkLight, AppColors.pink],
-                    shadow: AppColors.pinkShadow,
-                    radius: 24,
-                    depth: 7,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 56,
-                      vertical: 16,
-                    ),
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const LevelSelectScreen(),
-                      ),
-                    ),
-                    child: const Text(
-                      'Play',
-                      style: TextStyle(
-                        fontSize: 24,
+                        fontSize: 18,
                         fontWeight: FontWeight.w600,
-                        color: Colors.white,
+                        letterSpacing: 6,
+                        color: AppColors.accent2,
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 18),
-                  const SizedBox(
-                    width: 240,
-                    child: Text(
-                      'Drag to aim, release to shoot. Pop three or more of a color to clear them.',
-                      textAlign: TextAlign.center,
+                    const SizedBox(height: 6),
+                    ShaderMask(
+                      shaderCallback: (rect) => const LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Color(0xFFFFD23F),
+                          Color(0xFFFF7A9E),
+                          Color(0xFFFF4D8D),
+                        ],
+                        stops: [0, 0.55, 1],
+                      ).createShader(rect),
+                      child: const Text(
+                        'Bubble\nPop',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 64,
+                          height: 0.92,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    const Text(
+                      'Aim • Match 3 • Clear the board',
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: 16,
                         fontWeight: FontWeight.w500,
-                        color: AppColors.muted,
+                        color: AppColors.body,
                       ),
                     ),
-                  ),
-                  const Spacer(),
-                ],
+                    const SizedBox(height: 34),
+                    _glassPlayButton(
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const LevelSelectScreen(),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    const SizedBox(
+                      width: 240,
+                      child: Text(
+                        'Drag to aim, release to shoot. Pop three or more of a color to clear them.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.muted,
+                        ),
+                      ),
+                    ),
+                    const Spacer(),
+                  ],
+                ),
               ),
             ),
           ),
@@ -150,6 +136,95 @@ class HomeScreen extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  /// The primary "Play" call-to-action as a pink-tinted Liquid-Glass capsule.
+  Widget _glassPlayButton({required VoidCallback onTap}) {
+    final br = BorderRadius.circular(26);
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          borderRadius: br,
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.pinkShadow.withValues(alpha: 0.5),
+              blurRadius: 18,
+              offset: const Offset(0, 9),
+            ),
+            BoxShadow(
+              color: Colors.white.withValues(alpha: 0.3),
+              blurRadius: 8,
+              spreadRadius: -2,
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: br,
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 64, vertical: 16),
+              decoration: BoxDecoration(
+                // Pink-tinted refractive glass so it stays the hero action.
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    AppColors.pinkLight.withValues(alpha: 0.85),
+                    AppColors.pink.withValues(alpha: 0.72),
+                  ],
+                ),
+                borderRadius: br,
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.65),
+                  width: 1.5,
+                ),
+              ),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  // Bright specular highlight along the top edge.
+                  Positioned(
+                    top: 0,
+                    left: 14,
+                    right: 14,
+                    child: IgnorePointer(
+                      child: Container(
+                        height: 10,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.white.withValues(alpha: 0.7),
+                              Colors.white.withValues(alpha: 0),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const Text(
+                    'Play',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                      shadows: [
+                        Shadow(color: Color(0x55000000), offset: Offset(0, 1)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
