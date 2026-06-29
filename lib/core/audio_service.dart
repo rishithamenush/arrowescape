@@ -1,14 +1,16 @@
 import 'package:flame_audio/flame_audio.dart';
 
 /// Central audio: preloaded low-latency sound effects with per-sound volumes,
-/// plus looping background music. A single [enabled] flag (driven by the
-/// in-game sound toggle) controls both SFX and music.
+/// plus looping background music. Sound effects and background music are
+/// toggled independently via [setSfxEnabled] / [setMusicEnabled].
 class AudioService {
   AudioService._();
   static final AudioService instance = AudioService._();
 
-  bool _enabled = true;
-  bool get enabled => _enabled;
+  bool _sfxEnabled = true;
+  bool _musicEnabled = true;
+  bool get sfxEnabled => _sfxEnabled;
+  bool get musicEnabled => _musicEnabled;
 
   bool _ready = false;
 
@@ -57,7 +59,7 @@ class AudioService {
 
   /// Plays a one-shot sound effect by logical [name].
   void play(String name) {
-    if (!_enabled || !_ready) return;
+    if (!_sfxEnabled || !_ready) return;
     final file = _sfx[name];
     if (file == null) return;
     _safePlay(file, _volume[name] ?? 0.7);
@@ -71,7 +73,7 @@ class AudioService {
 
   // ---------- background music ----------
   Future<void> startMusic() async {
-    if (!_enabled || !_ready) return;
+    if (!_musicEnabled || !_ready) return;
     if (FlameAudio.bgm.isPlaying) return;
     try {
       await FlameAudio.bgm.play(_music, volume: _musicVolume);
@@ -84,9 +86,15 @@ class AudioService {
     } catch (_) {}
   }
 
-  // ---------- master toggle ----------
-  void setEnabled(bool on) {
-    _enabled = on;
+  // ---------- independent toggles ----------
+  /// Enables/disables one-shot sound effects (pops, shots, win chimes…).
+  void setSfxEnabled(bool on) {
+    _sfxEnabled = on;
+  }
+
+  /// Enables/disables the looping background music.
+  void setMusicEnabled(bool on) {
+    _musicEnabled = on;
     if (on) {
       startMusic();
     } else {

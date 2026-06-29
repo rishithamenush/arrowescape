@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../core/theme.dart';
+import '../state/game_state.dart';
 import '../widgets/candy.dart';
 import 'level_select_screen.dart';
 
@@ -9,6 +10,7 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final state = GameScope.of(context);
     return Scaffold(
       body: Stack(
         children: [
@@ -108,12 +110,79 @@ class HomeScreen extends StatelessWidget {
                     ),
                   ),
                   const Spacer(),
+                  // Audio controls: independent music + sound-effects toggles.
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 18),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        _audioToggle(
+                          on: state.musicOn,
+                          onIcon: Icons.music_note_rounded,
+                          offIcon: Icons.music_off_rounded,
+                          label: 'Music',
+                          onTap: state.toggleMusic,
+                        ),
+                        const SizedBox(width: 22),
+                        _audioToggle(
+                          on: state.soundOn,
+                          onIcon: Icons.volume_up_rounded,
+                          offIcon: Icons.volume_off_rounded,
+                          label: 'Sound',
+                          onTap: state.toggleSound,
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _audioToggle({
+    required bool on,
+    required IconData onIcon,
+    required IconData offIcon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    final color = on ? AppColors.accent : AppColors.muted;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        GestureDetector(
+          onTap: onTap,
+          child: Container(
+            width: 54,
+            height: 54,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: on ? 0.95 : 0.7),
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.12),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: Icon(on ? onIcon : offIcon, color: color, size: 26),
+          ),
+        ),
+        const SizedBox(height: 5),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+            color: on ? AppColors.body : AppColors.muted,
+          ),
+        ),
+      ],
     );
   }
 }

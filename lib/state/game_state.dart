@@ -4,13 +4,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../core/audio_service.dart';
 import '../game/levels.dart';
 
-
 /// App-wide progress + settings for Bubble Pop. Progress is persisted to
 /// [SharedPreferences] so completed levels and earned stars survive restarts.
 class GameState extends ChangeNotifier {
   static const _kUnlockedKey = 'bp_unlocked';
   static const _kProgressKey = 'bp_progress';
   static const _kSoundKey = 'bp_sound_on';
+  static const _kMusicKey = 'bp_music_on';
 
   /// Highest unlocked level index (0-based).
   int unlocked = 0;
@@ -18,7 +18,11 @@ class GameState extends ChangeNotifier {
   /// Best stars earned per level index (0..3).
   final List<int> progress = List<int>.filled(kLevels.length, 0);
 
+  /// Sound effects (pops, shots, win chimes).
   bool soundOn = true;
+
+  /// Looping background music.
+  bool musicOn = true;
 
   SharedPreferences? _prefs;
 
@@ -37,7 +41,9 @@ class GameState extends ChangeNotifier {
     }
 
     soundOn = prefs.getBool(_kSoundKey) ?? true;
-    AudioService.instance.setEnabled(soundOn);
+    musicOn = prefs.getBool(_kMusicKey) ?? true;
+    AudioService.instance.setSfxEnabled(soundOn);
+    AudioService.instance.setMusicEnabled(musicOn);
 
     notifyListeners();
   }
@@ -59,8 +65,15 @@ class GameState extends ChangeNotifier {
 
   void toggleSound() {
     soundOn = !soundOn;
-    AudioService.instance.setEnabled(soundOn);
+    AudioService.instance.setSfxEnabled(soundOn);
     _prefs?.setBool(_kSoundKey, soundOn);
+    notifyListeners();
+  }
+
+  void toggleMusic() {
+    musicOn = !musicOn;
+    AudioService.instance.setMusicEnabled(musicOn);
+    _prefs?.setBool(_kMusicKey, musicOn);
     notifyListeners();
   }
 
