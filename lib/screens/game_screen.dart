@@ -479,13 +479,24 @@ class _GameScreenState extends State<GameScreen> {
           const Spacer(),
           Padding(
             padding: const EdgeInsets.only(bottom: 18),
-            child: _circleButton(
+            child: _GlassButton(
+              radius: 20,
               onTap: _engine.swap,
-              icon: Icons.swap_horiz_rounded,
-              color: AppColors.body,
+              // Same pill footprint as before, now just the swap icon centred.
+              child: const SizedBox(
+                width: 88,
+                height: 40,
+                child: Center(
+                  child: Icon(
+                    Icons.swap_horiz_rounded,
+                    color: AppColors.body,
+                    size: 22,
+                  ),
+                ),
+              ),
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 12),
           Column(
             mainAxisSize: MainAxisSize.min,
             children: [
