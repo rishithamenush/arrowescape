@@ -167,7 +167,7 @@ class HomeScreen extends StatelessWidget {
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 64, vertical: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 104, vertical: 16),
               decoration: BoxDecoration(
                 // Pink-tinted refractive glass so it stays the hero action.
                 gradient: LinearGradient(
