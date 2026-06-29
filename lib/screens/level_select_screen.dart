@@ -6,6 +6,7 @@ import '../core/theme.dart';
 import '../game/sections.dart';
 import '../state/game_state.dart';
 import '../widgets/candy.dart';
+import '../widgets/liquid_glass.dart';
 import 'world_map_screen.dart';
 
 /// The "Worlds" overview, presented as a single winding candy **journey trail**:
@@ -118,38 +119,29 @@ class _LevelSelectScreenState extends State<LevelSelectScreen>
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 6),
       child: Row(
         children: [
-          CandyButton(
-            color: AppColors.pill,
-            shadow: AppColors.softPinkShadow,
-            radius: 16,
-            depth: 4,
-            padding: EdgeInsets.zero,
+          GestureDetector(
             onTap: () => Navigator.of(context).pop(),
-            child: const SizedBox(
-              width: 46,
-              height: 46,
-              child: Icon(
-                Icons.chevron_left_rounded,
-                color: AppColors.accent,
-                size: 30,
+            behavior: HitTestBehavior.opaque,
+            child: const LiquidGlass(
+              radius: 16,
+              blur: 14,
+              child: SizedBox(
+                width: 46,
+                height: 46,
+                child: Icon(
+                  Icons.chevron_left_rounded,
+                  color: AppColors.accent,
+                  size: 30,
+                ),
               ),
             ),
           ),
           const SizedBox(width: 10),
           Expanded(
-            child: Container(
+            child: LiquidGlass(
+              radius: 20,
+              blur: 16,
               padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.accent.withValues(alpha: 0.22),
-                    blurRadius: 12,
-                    offset: const Offset(0, 5),
-                  ),
-                ],
-              ),
               child: Row(
                 children: [
                   Expanded(
@@ -522,19 +514,13 @@ class _StopLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = section;
-    return Container(
+    // Glass look without a BackdropFilter — there can be ~70 labels on screen,
+    // so a translucent fill + sheen keeps it cheap while still reading as glass.
+    return LiquidGlass(
+      radius: 16,
+      blur: 0,
+      opacity: 0.72,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.12),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
