@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/material.dart';
@@ -21,89 +22,100 @@ class HomeScreen extends StatelessWidget {
           ),
           Positioned.fill(
             child: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    const SizedBox(height: 80),
-                    // Boba — the app's main character.
-                    Image.asset(
-                      'assets/boba/chara1.png',
-                      height: 210,
-                      fit: BoxFit.contain,
-                    ),
-                    const SizedBox(height: 14),
-                    const Text(
-                      'SWEET',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 6,
-                        color: AppColors.accent2,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    ShaderMask(
-                      shaderCallback: (rect) => const LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Color(0xFFFFD23F),
-                          Color(0xFFFF7A9E),
-                          Color(0xFFFF4D8D),
-                        ],
-                        stops: [0, 0.55, 1],
-                      ).createShader(rect),
-                      child: const Text(
-                        'Bubble\nPop',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 64,
-                          height: 0.92,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  // Scale the hero block to the available height so it never
+                  // overflows on short devices and never looks oversized on
+                  // tall ones. Tuned around a ~660pt reference layout.
+                  final h = constraints.maxHeight;
+                  final w = constraints.maxWidth;
+                  final s = (h / 660).clamp(0.72, 1.0);
+                  final topGap = (h * 0.1).clamp(24.0, 80.0);
+                  // Keep horizontal padding proportional but bounded so wide
+                  // and narrow screens both stay comfortable.
+                  final hPad = (w * 0.08).clamp(20.0, 32.0);
+
+                  return Padding(
+                    padding: EdgeInsets.symmetric(horizontal: hPad),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        SizedBox(height: topGap),
+                        // Boba — the app's main character.
+                        Flexible(
+                          child: Image.asset(
+                            'assets/boba/chara1.png',
+                            height: 210 * s,
+                            fit: BoxFit.contain,
+                          ),
                         ),
-                      ),
-                    ),
-                    // const SizedBox(height: 10),
-                    // const Text(
-                    //   'Aim • Match 3 • Clear the board',
-                    //   style: TextStyle(
-                    //     fontSize: 16,
-                    //     fontWeight: FontWeight.w500,
-                    //     color: AppColors.body,
-                    //   ),
-                    // ),
-                    const SizedBox(height: 34),
-                    _glassPlayButton(
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const LevelSelectScreen(),
+                        SizedBox(height: 14 * s),
+                        Text(
+                          'SWEET',
+                          style: TextStyle(
+                            fontSize: 18 * s,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 6,
+                            color: AppColors.accent2,
+                          ),
                         ),
-                      ),
-                    ),
-                    const SizedBox(height: 18),
-                    const SizedBox(
-                      width: 250,
-                      child: Text(
-                        'Drag to aim, release to shoot. Pop three or more of a color to clear them.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 13.5,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.heading,
-                          height: 1.35,
-                          shadows: [
-                            Shadow(color: Colors.white, blurRadius: 6),
-                            Shadow(color: Colors.white, blurRadius: 6),
-                          ],
+                        SizedBox(height: 6 * s),
+                        ShaderMask(
+                          shaderCallback: (rect) => const LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Color(0xFFFFD23F),
+                              Color(0xFFFF7A9E),
+                              Color(0xFFFF4D8D),
+                            ],
+                            stops: [0, 0.55, 1],
+                          ).createShader(rect),
+                          child: Text(
+                            'Bubble\nPop',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 64 * s,
+                              height: 0.92,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                            ),
+                          ),
                         ),
-                      ),
+                        SizedBox(height: 34 * s),
+                        _glassPlayButton(
+                          // Cap the button width so it fills narrow screens
+                          // without overflowing and stays tidy on wide ones.
+                          width: math.min(w - hPad * 2, 320.0),
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => const LevelSelectScreen(),
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 18 * s),
+                        const SizedBox(
+                          width: 250,
+                          child: Text(
+                            'Drag to aim, release to shoot. Pop three or more of a color to clear them.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.heading,
+                              height: 1.35,
+                              shadows: [
+                                Shadow(color: Colors.white, blurRadius: 6),
+                                Shadow(color: Colors.white, blurRadius: 6),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const Spacer(),
+                      ],
                     ),
-                    const Spacer(),
-                  ],
-                ),
+                  );
+                },
               ),
             ),
           ),
@@ -146,12 +158,14 @@ class HomeScreen extends StatelessWidget {
   }
 
   /// The primary "Play" call-to-action as a pink-tinted Liquid-Glass capsule.
-  Widget _glassPlayButton({required VoidCallback onTap}) {
+  Widget _glassPlayButton({required VoidCallback onTap, required double width}) {
     final br = BorderRadius.circular(26);
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
-      child: DecoratedBox(
+      child: SizedBox(
+        width: width,
+        child: DecoratedBox(
         decoration: BoxDecoration(
           borderRadius: br,
           boxShadow: [
@@ -172,7 +186,7 @@ class HomeScreen extends StatelessWidget {
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 104, vertical: 16),
+              padding: const EdgeInsets.symmetric(vertical: 16),
               decoration: BoxDecoration(
                 // Pink-tinted refractive glass so it stays the hero action.
                 gradient: LinearGradient(
@@ -229,6 +243,7 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
           ),
+        ),
         ),
       ),
     );

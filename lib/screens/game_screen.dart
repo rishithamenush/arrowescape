@@ -261,54 +261,63 @@ class _GameScreenState extends State<GameScreen> {
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
       child: Row(
         children: [
-          // Score card with a medal badge.
-          _softPill(
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 34,
-                  height: 34,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [AppColors.pinkLight, AppColors.pink],
-                    ),
-                  ),
-                  child: const Icon(
-                    Icons.workspace_premium_rounded,
-                    color: Colors.white,
-                    size: 20,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      'LEVEL ${_level + 1}',
-                      style: const TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 1.2,
-                        color: AppColors.label,
+          // Score card with a medal badge. Flexible so a long score / level
+          // number shrinks gracefully instead of overflowing the HUD row.
+          Flexible(
+            child: _softPill(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 34,
+                    height: 34,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [AppColors.pinkLight, AppColors.pink],
                       ),
                     ),
-                    Text(
-                      '${_engine.score}',
-                      style: const TextStyle(
-                        fontSize: 22,
-                        height: 1,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.heading,
-                      ),
+                    child: const Icon(
+                      Icons.workspace_premium_rounded,
+                      color: Colors.white,
+                      size: 20,
                     ),
-                  ],
-                ),
-              ],
+                  ),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'LEVEL ${_level + 1}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 1.2,
+                            color: AppColors.label,
+                          ),
+                        ),
+                        Text(
+                          '${_engine.score}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 22,
+                            height: 1,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.heading,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
           const Spacer(),
