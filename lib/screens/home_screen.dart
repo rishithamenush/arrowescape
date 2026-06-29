@@ -23,7 +23,7 @@ class HomeScreen extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 32),
               child: Column(
                 children: [
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 50),
                   // Boba — the app's main character, up top where there's space.
                   Image.asset(
                     'assets/boba/chara1.png',
@@ -110,31 +110,36 @@ class HomeScreen extends StatelessWidget {
                     ),
                   ),
                   const Spacer(),
-                  // Audio controls: independent music + sound-effects toggles.
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 18),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        _audioToggle(
-                          on: state.musicOn,
-                          onIcon: Icons.music_note_rounded,
-                          offIcon: Icons.music_off_rounded,
-                          label: 'Music',
-                          onTap: state.toggleMusic,
-                        ),
-                        const SizedBox(width: 22),
-                        _audioToggle(
-                          on: state.soundOn,
-                          onIcon: Icons.volume_up_rounded,
-                          offIcon: Icons.volume_off_rounded,
-                          label: 'Sound',
-                          onTap: state.toggleSound,
-                        ),
-                      ],
-                    ),
-                  ),
                 ],
+              ),
+            ),
+          ),
+          // Audio controls tucked into the bottom-right corner.
+          SafeArea(
+            child: Align(
+              alignment: Alignment.bottomRight,
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 12, right: 12),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _audioToggle(
+                      on: state.musicOn,
+                      onIcon: Icons.music_note_rounded,
+                      offIcon: Icons.music_off_rounded,
+                      label: 'Music',
+                      onTap: state.toggleMusic,
+                    ),
+                    const SizedBox(width: 12),
+                    _audioToggle(
+                      on: state.soundOn,
+                      onIcon: Icons.volume_up_rounded,
+                      offIcon: Icons.volume_off_rounded,
+                      label: 'Sound',
+                      onTap: state.toggleSound,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -157,27 +162,27 @@ class HomeScreen extends StatelessWidget {
         GestureDetector(
           onTap: onTap,
           child: Container(
-            width: 54,
-            height: 54,
+            width: 38,
+            height: 38,
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: on ? 0.95 : 0.7),
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.12),
-                  blurRadius: 8,
-                  offset: const Offset(0, 3),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
                 ),
               ],
             ),
-            child: Icon(on ? onIcon : offIcon, color: color, size: 26),
+            child: Icon(on ? onIcon : offIcon, color: color, size: 19),
           ),
         ),
-        const SizedBox(height: 5),
+        const SizedBox(height: 3),
         Text(
           label,
           style: TextStyle(
-            fontSize: 12,
+            fontSize: 10,
             fontWeight: FontWeight.w700,
             color: on ? AppColors.body : AppColors.muted,
           ),
