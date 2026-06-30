@@ -1,6 +1,8 @@
 import 'dart:math' as math;
 
-import 'package:flame/game.dart';
+// Flame re-exports vector_math's Matrix4, which collides with Flutter's
+// (vector_math_64) Matrix4 used by GradientTransform — hide it to disambiguate.
+import 'package:flame/game.dart' hide Matrix4;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -550,26 +552,7 @@ class _GameScreenState extends State<GameScreen> {
     ),
   );
 
-  Widget _clearIcon() => Container(
-    width: 30,
-    height: 30,
-    decoration: const BoxDecoration(
-      shape: BoxShape.circle,
-      gradient: SweepGradient(
-        colors: [
-          Color(0xFFFF4D8D),
-          Color(0xFFFFD23F),
-          Color(0xFF44D0E6),
-          Color(0xFF3DDC84),
-          Color(0xFF9B6BFF),
-          Color(0xFFFF4D8D),
-        ],
-      ),
-    ),
-    child: const Center(
-      child: Text('★', style: TextStyle(fontSize: 15, color: Colors.white)),
-    ),
-  );
+  Widget _clearIcon() => const _ClearGem();
 
   Widget _glossyBubble(Color color, double size) => Container(
     width: size,
@@ -856,6 +839,156 @@ class _GlassButtonState extends State<_GlassButton> {
           child: widget.child,
         ),
       ),
+    );
+  }
+}
+
+/// Slides a gradient horizontally by a fraction of its bounds — paired with
+/// [TileMode.mirror] this makes the holographic sheen flow seamlessly.
+class _SlideTransform extends GradientTransform {
+  const _SlideTransform(this.t);
+  final double t;
+
+  @override
+  Matrix4 transform(Rect bounds, {TextDirection? textDirection}) =>
+      Matrix4.translationValues(bounds.width * t, 0, 0);
+}
+
+/// The "Clear" power gem: a glossy holographic orb whose iridescent sheen flows
+/// across it, with a glassy radial sheen, a breathing glow and a glowing star at
+/// its heart — a premium, eye-catching power icon.
+class _ClearGem extends StatefulWidget {
+  const _ClearGem();
+
+  @override
+  State<_ClearGem> createState() => _ClearGemState();
+}
+
+class _ClearGemState extends State<_ClearGem>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 4200),
+  )..repeat();
+
+  // Iridescent holographic palette — soft, blended candy tones that loop
+  // seamlessly (first == last) for a continuous flowing sheen.
+  static const List<Color> _holo = [
+    Color(0xFFFF8FD0),
+    Color(0xFFB18CFF),
+    Color(0xFF6FE0FF),
+    Color(0xFF7BF6C2),
+    Color(0xFFFFE08A),
+    Color(0xFFFF8FD0),
+  ];
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    const d = 36.0;
+    return AnimatedBuilder(
+      animation: _c,
+      builder: (_, __) {
+        final t = _c.value;
+        final pulse = 0.5 + 0.5 * math.sin(t * 2 * math.pi); // breathing glow
+        return SizedBox(
+          width: d,
+          height: d,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // Holographic orb: a soft iridescent gradient that slides across
+              // for a flowing sheen, with a crisp white rim + soft glow.
+              Container(
+                width: d,
+                height: d,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                    tileMode: TileMode.mirror,
+                    transform: _SlideTransform(t),
+                    colors: _holo,
+                  ),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.9),
+                    width: 1.6,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(
+                        0xFF9B6BFF,
+                      ).withValues(alpha: 0.35 + 0.25 * pulse),
+                      blurRadius: 8 + 4 * pulse,
+                      spreadRadius: 0.5,
+                    ),
+                  ],
+                ),
+              ),
+              // Radial inner light for a glassy, 3-D sheen.
+              Container(
+                width: d,
+                height: d,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    center: const Alignment(-0.4, -0.5),
+                    radius: 0.95,
+                    colors: [
+                      Colors.white.withValues(alpha: 0.55),
+                      Colors.white.withValues(alpha: 0),
+                    ],
+                    stops: const [0, 0.7],
+                  ),
+                ),
+              ),
+              // Specular highlight skimming the top-left.
+              Positioned(
+                top: d * 0.16,
+                left: d * 0.2,
+                child: Container(
+                  width: d * 0.34,
+                  height: d * 0.2,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(d),
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.white.withValues(alpha: 0.95),
+                        Colors.white.withValues(alpha: 0),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              // Glowing star at the centre.
+              Icon(
+                Icons.star_rounded,
+                size: d * 0.5,
+                color: Colors.white,
+                shadows: [
+                  Shadow(
+                    color: const Color(0xFF9B6BFF).withValues(alpha: 0.8),
+                    blurRadius: 6,
+                  ),
+                  Shadow(
+                    color: Colors.black.withValues(alpha: 0.25),
+                    offset: const Offset(0, 1),
+                    blurRadius: 2,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

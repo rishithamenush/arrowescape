@@ -106,6 +106,10 @@ class BubbleEngine {
   Offset aim = Offset.zero;
   Projectile? proj;
   double shake = 0;
+
+  /// Free-running clock (seconds) for cosmetic animation (e.g. the holographic
+  /// "clear" bubble sheen). Advances every frame regardless of [running].
+  double _clock = 0;
   bool running = false;
   bool finished = false;
   bool soundOn = true;
@@ -507,6 +511,7 @@ class BubbleEngine {
 
   // ---------- loop ----------
   void update(double dt) {
+    _clock += dt;
     if (running && proj != null) {
       final p = proj!;
       final dist = math.sqrt(p.vx * p.vx + p.vy * p.vy) * dt;
@@ -647,24 +652,77 @@ class BubbleEngine {
       return;
     }
     if (special == 'clear') {
-      final paint = Paint()
-        ..shader = ui.Gradient.sweep(
-          Offset(x, y),
-          const [
-            Color(0xFFFF4D8D),
-            Color(0xFFFFD23F),
-            Color(0xFF3EC8E0),
-            Color(0xFF3DDC84),
-            Color(0xFF9B6BFF),
-            Color(0xFFFF4D8D),
-          ],
-          [0, 0.2, 0.4, 0.6, 0.8, 1.0],
-        );
-      canvas.drawCircle(Offset(x, y), r, paint);
+      // Iridescent holographic palette (loops seamlessly: first == last).
+      const holo = [
+        Color(0xFFFF8FD0),
+        Color(0xFFB18CFF),
+        Color(0xFF6FE0FF),
+        Color(0xFF7BF6C2),
+        Color(0xFFFFE08A),
+        Color(0xFFFF8FD0),
+      ];
+      // Slide the gradient across (mirror-tiled) for a flowing sheen.
+      final off = (_clock * r * 0.9) % (r * 2);
+      canvas.drawCircle(
+        Offset(x, y),
+        r - 0.5,
+        Paint()
+          ..shader = ui.Gradient.linear(
+            Offset(x - r - off, y),
+            Offset(x + r - off, y),
+            holo,
+            const [0, 0.2, 0.4, 0.6, 0.8, 1.0],
+            TileMode.mirror,
+          ),
+      );
+      // Glassy radial light from the top-left for a 3-D sheen.
+      canvas.drawCircle(
+        Offset(x, y),
+        r - 0.5,
+        Paint()
+          ..shader = ui.Gradient.radial(
+            Offset(x - r * 0.35, y - r * 0.4),
+            r * 0.95,
+            const [Color(0x99FFFFFF), Color(0x00FFFFFF)],
+            const [0, 1],
+          ),
+      );
+      // Crisp white rim.
+      canvas.drawCircle(
+        Offset(x, y),
+        r - 0.5,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.6
+          ..color = const Color(0xE6FFFFFF),
+      );
+      // Specular highlight ellipse.
+      canvas.save();
+      canvas.translate(x - r * 0.32, y - r * 0.36);
+      canvas.rotate(-0.5);
+      canvas.drawOval(
+        Rect.fromCenter(center: Offset.zero, width: r * 0.5, height: r * 0.34),
+        Paint()..color = const Color(0xCCFFFFFF),
+      );
+      canvas.restore();
+      // Glowing rounded star at the centre.
       final tp = TextPainter(
         text: TextSpan(
-          text: '★',
-          style: TextStyle(fontSize: r * 1.3, color: Colors.white),
+          text: String.fromCharCode(Icons.star_rounded.codePoint),
+          style: TextStyle(
+            fontSize: r * 1.15,
+            fontFamily: Icons.star_rounded.fontFamily,
+            package: Icons.star_rounded.fontPackage,
+            color: Colors.white,
+            shadows: const [
+              Shadow(color: Color(0xCC9B6BFF), blurRadius: 6),
+              Shadow(
+                color: Color(0x40000000),
+                offset: Offset(0, 1),
+                blurRadius: 2,
+              ),
+            ],
+          ),
         ),
         textDirection: TextDirection.ltr,
       )..layout();
