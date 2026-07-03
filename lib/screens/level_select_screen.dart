@@ -167,43 +167,21 @@ class _LevelSelectScreenState extends State<LevelSelectScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      ShaderMask(
-                        shaderCallback: (rect) => const LinearGradient(
-                          colors: [Color(0xFFFF7AB0), AppColors.accent],
-                        ).createShader(rect),
-                        child: const Text(
-                          'Worlds',
-                          style: TextStyle(
-                            fontSize: 24,
-                            height: 1,
-                            fontWeight: FontWeight.w800,
-                            color: Colors.white,
-                          ),
-                        ),
+                  ShaderMask(
+                    shaderCallback: (rect) => const LinearGradient(
+                      colors: [Color(0xFFFF7AB0), AppColors.accent],
+                    ).createShader(rect),
+                    child: const Text(
+                      'Worlds',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 24,
+                        height: 1,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
                       ),
-                      const SizedBox(width: 8),
-                      // Flexible so it ellipsizes on narrow screens instead
-                      // of overflowing the header row.
-                      Flexible(
-                        child: Padding(
-                          padding: const EdgeInsets.only(bottom: 1),
-                          child: Text(
-                            '${(frac * 100).round()}% COMPLETE',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontSize: 9,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 1,
-                              color: AppColors.label,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                   const SizedBox(height: 7),
                   // Overall star-collection progress.
@@ -264,10 +242,12 @@ class _LevelSelectScreenState extends State<LevelSelectScreen>
                 children: [
                   const Icon(Icons.star_rounded, size: 18, color: Colors.white),
                   const SizedBox(width: 4),
+                  // Just the collected total — "50/3015" reads as
+                  // discouraging; the bar already shows overall progress.
                   Text(
-                    '$total/$maxStars',
+                    '$total',
                     style: const TextStyle(
-                      fontSize: 13,
+                      fontSize: 14,
                       fontWeight: FontWeight.w800,
                       color: Colors.white,
                     ),
