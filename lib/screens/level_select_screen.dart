@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import '../core/theme.dart';
 import '../game/sections.dart';
 import '../state/game_state.dart';
-import '../widgets/candy.dart';
 import '../widgets/liquid_glass.dart';
 import 'world_map_screen.dart';
 
@@ -61,52 +60,67 @@ class _LevelSelectScreenState extends State<LevelSelectScreen>
   Widget build(BuildContext context) {
     final state = GameScope.of(context);
     return Scaffold(
-      body: CandyBackground(
-        child: Column(
-          children: [
-            _header(state),
-            Expanded(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final width = constraints.maxWidth;
-                  final n = _sections.length;
-                  final amp = (width / 2 - _node / 2 - 30).clamp(0.0, 96.0);
-                  final centerX = width / 2;
-                  final points = <Offset>[
-                    for (var i = 0; i < n; i++)
-                      Offset(
-                        centerX + amp * math.sin(i * 0.9),
-                        _topPad + i * _spacing,
-                      ),
-                  ];
-                  final mapHeight = _topPad + (n - 1) * _spacing + _botPad;
-
-                  // Only the trail painter and the small pulse widgets listen
-                  // to the loop — the ~70 island stops and labels are built
-                  // once per state change, not once per animation frame.
-                  return SingleChildScrollView(
-                    controller: _scroll,
-                    physics: const BouncingScrollPhysics(),
-                    child: SizedBox(
-                      width: width,
-                      height: mapHeight,
-                      child: Stack(
-                        children: [
-                          Positioned.fill(
-                            child: CustomPaint(
-                              painter: _TrailPainter(points, _loop),
-                            ),
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          // Gradient fallback underneath, hand-made map artwork on top —
+          // the illustration keeps its centre column empty for the trail.
+          const DecoratedBox(
+            decoration: BoxDecoration(gradient: AppTheme.backgroundGradient),
+          ),
+          Image.asset(
+            'assets/boba/world_map.png',
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+          ),
+          SafeArea(
+            child: Column(
+              children: [
+                _header(state),
+                Expanded(
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final width = constraints.maxWidth;
+                      final n = _sections.length;
+                      final amp = (width / 2 - _node / 2 - 30).clamp(0.0, 96.0);
+                      final centerX = width / 2;
+                      final points = <Offset>[
+                        for (var i = 0; i < n; i++)
+                          Offset(
+                            centerX + amp * math.sin(i * 0.9),
+                            _topPad + i * _spacing,
                           ),
-                          ..._stops(state, points),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
+                      ];
+                      final mapHeight = _topPad + (n - 1) * _spacing + _botPad;
+
+                      // Only the trail painter and the small pulse widgets listen
+                      // to the loop — the ~70 island stops and labels are built
+                      // once per state change, not once per animation frame.
+                      return SingleChildScrollView(
+                        controller: _scroll,
+                        physics: const BouncingScrollPhysics(),
+                        child: SizedBox(
+                          width: width,
+                          height: mapHeight,
+                          child: Stack(
+                            children: [
+                              Positioned.fill(
+                                child: CustomPaint(
+                                  painter: _TrailPainter(points, _loop),
+                                ),
+                              ),
+                              ..._stops(state, points),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -584,10 +598,7 @@ class _PulsingHalo extends StatelessWidget {
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           gradient: RadialGradient(
-            colors: [
-              color.withValues(alpha: 0.55),
-              color.withValues(alpha: 0),
-            ],
+            colors: [color.withValues(alpha: 0.55), color.withValues(alpha: 0)],
             stops: const [0.25, 1],
           ),
         ),

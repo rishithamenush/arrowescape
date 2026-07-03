@@ -268,67 +268,10 @@ class _GameScreenState extends State<GameScreen> {
 
   // ---------- background ----------
 
-  /// World-tinted backdrop: a soft vertical wash plus two big blurred glow
-  /// orbs in the world's colours, so every world feels like its own place.
+  /// Plain, clean full-screen backdrop — the world illustration lives inside
+  /// the board panel only (see [_board]), so the chrome around it stays calm.
   Widget _background(GameSection s) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            s.gradient.first.withValues(alpha: 0.34),
-            const Color(0xFFFDF3FA),
-            s.gradient.last.withValues(alpha: 0.26),
-          ],
-          stops: const [0, 0.48, 1],
-        ),
-      ),
-      child: IgnorePointer(
-        child: Stack(
-          children: [
-            _glowOrb(
-              alignment: const Alignment(-1.3, -0.9),
-              size: 300,
-              color: s.gradient.first,
-            ),
-            _glowOrb(
-              alignment: const Alignment(1.35, 0.25),
-              size: 240,
-              color: s.gradient.last,
-            ),
-            _glowOrb(
-              alignment: const Alignment(-1.2, 1.1),
-              size: 260,
-              color: AppColors.pinkLight,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _glowOrb({
-    required Alignment alignment,
-    required double size,
-    required Color color,
-  }) {
-    return Align(
-      alignment: alignment,
-      child: Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: RadialGradient(
-            colors: [
-              color.withValues(alpha: 0.34),
-              color.withValues(alpha: 0),
-            ],
-          ),
-        ),
-      ),
-    );
+    return const ColoredBox(color: Color(0xFFFDF3FA));
   }
 
   // ---------- HUD ----------
@@ -489,28 +432,46 @@ class _GameScreenState extends State<GameScreen> {
   // ---------- board ----------
 
   /// The Flame board sits in a softly framed glass panel so the play area
-  /// reads as "the stage" of the screen.
+  /// reads as "the stage" of the screen. The world illustration is shown
+  /// inside this panel only, at low opacity, so bubbles stay readable while
+  /// the board still feels like part of the world.
   Widget _board() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(10, 6, 10, 6),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(26),
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.20),
-            borderRadius: BorderRadius.circular(26),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.55),
-              width: 1.4,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            // World artwork, clipped to the board and faded right down.
+            Opacity(
+              opacity: 0.95,
+              child: Image.asset(
+                'assets/worlds/world${_section.index + 1}.png',
+                fit: BoxFit.cover,
+                gaplessPlayback: true,
+                errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+              ),
             ),
-          ),
-          child: Listener(
-            behavior: HitTestBehavior.opaque,
-            onPointerDown: (e) => _engine.onAim(e.localPosition),
-            onPointerMove: (e) => _engine.onAim(e.localPosition),
-            onPointerUp: (e) => _engine.onShoot(e.localPosition),
-            child: GameWidget(game: _game),
-          ),
+            // Light frost + glass rim over the artwork.
+            DecoratedBox(
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.22),
+                borderRadius: BorderRadius.circular(26),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.55),
+                  width: 1.4,
+                ),
+              ),
+            ),
+            Listener(
+              behavior: HitTestBehavior.opaque,
+              onPointerDown: (e) => _engine.onAim(e.localPosition),
+              onPointerMove: (e) => _engine.onAim(e.localPosition),
+              onPointerUp: (e) => _engine.onShoot(e.localPosition),
+              child: GameWidget(game: _game),
+            ),
+          ],
         ),
       ),
     );
