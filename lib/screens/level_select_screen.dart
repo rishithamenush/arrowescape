@@ -162,7 +162,15 @@ class _LevelSelectScreenState extends State<LevelSelectScreen>
             const SizedBox(width: 8),
             // Centred sticker-style heading: white outline + candy gradient
             // fill + soft drop shadow, matching the in-game praise words.
-            const Expanded(child: Center(child: _StickerTitle('Worlds'))),
+            // FittedBox scales it down gracefully on very narrow screens.
+            const Expanded(
+              child: Center(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: _StickerTitle("Let's Pop!"),
+                ),
+              ),
+            ),
             const SizedBox(width: 8),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
