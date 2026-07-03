@@ -81,24 +81,24 @@ class _LevelSelectScreenState extends State<LevelSelectScreen>
                   ];
                   final mapHeight = _topPad + (n - 1) * _spacing + _botPad;
 
+                  // Only the trail painter and the small pulse widgets listen
+                  // to the loop — the ~70 island stops and labels are built
+                  // once per state change, not once per animation frame.
                   return SingleChildScrollView(
                     controller: _scroll,
                     physics: const BouncingScrollPhysics(),
                     child: SizedBox(
                       width: width,
                       height: mapHeight,
-                      child: AnimatedBuilder(
-                        animation: _loop,
-                        builder: (_, __) => Stack(
-                          children: [
-                            Positioned.fill(
-                              child: CustomPaint(
-                                painter: _TrailPainter(points, _loop.value),
-                              ),
+                      child: Stack(
+                        children: [
+                          Positioned.fill(
+                            child: CustomPaint(
+                              painter: _TrailPainter(points, _loop),
                             ),
-                            ..._stops(state, points),
-                          ],
-                        ),
+                          ),
+                          ..._stops(state, points),
+                        ],
                       ),
                     ),
                   );
@@ -241,7 +241,6 @@ class _LevelSelectScreenState extends State<LevelSelectScreen>
       final perfected = completed == s.count && stars == maxStars;
       final isCurrent = state.unlocked >= s.start && state.unlocked <= s.end;
       final progress = s.count == 0 ? 0.0 : completed / s.count;
-      final pulse = 0.5 + 0.5 * math.sin(_loop.value * 2 * math.pi);
 
       // Pulsing glow ring behind the current world.
       if (isCurrent) {
@@ -251,23 +250,7 @@ class _LevelSelectScreenState extends State<LevelSelectScreen>
             left: p.dx - halo / 2,
             top: p.dy - halo / 2,
             child: IgnorePointer(
-              child: Opacity(
-                opacity: 0.35 + 0.35 * pulse,
-                child: Container(
-                  width: halo,
-                  height: halo,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: RadialGradient(
-                      colors: [
-                        s.shadow.withValues(alpha: 0.55),
-                        s.shadow.withValues(alpha: 0),
-                      ],
-                      stops: const [0.25, 1],
-                    ),
-                  ),
-                ),
-              ),
+              child: _PulsingHalo(loop: _loop, color: s.shadow, size: halo),
             ),
           ),
         );
@@ -300,9 +283,11 @@ class _LevelSelectScreenState extends State<LevelSelectScreen>
         widgets.add(
           Positioned(
             left: p.dx - 38,
-            top: p.dy - _node / 2 - 30 - 3 * pulse,
+            top: p.dy - _node / 2 - 30,
             width: 76,
-            child: const IgnorePointer(child: Center(child: _PlayPin())),
+            child: IgnorePointer(
+              child: Center(child: _BouncingPin(loop: _loop)),
+            ),
           ),
         );
       }
@@ -572,6 +557,65 @@ class _StopLabel extends StatelessWidget {
   }
 }
 
+/// Soft radial glow behind the current world that breathes with the loop.
+/// Self-animating so only this widget repaints each frame.
+class _PulsingHalo extends StatelessWidget {
+  const _PulsingHalo({
+    required this.loop,
+    required this.color,
+    required this.size,
+  });
+
+  final Animation<double> loop;
+  final Color color;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: loop,
+      builder: (_, child) {
+        final pulse = 0.5 + 0.5 * math.sin(loop.value * 2 * math.pi);
+        return Opacity(opacity: 0.35 + 0.35 * pulse, child: child);
+      },
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: RadialGradient(
+            colors: [
+              color.withValues(alpha: 0.55),
+              color.withValues(alpha: 0),
+            ],
+            stops: const [0.25, 1],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The "PLAY" pin bobbing gently over the current world. Self-animating so
+/// only the pin repaints each frame.
+class _BouncingPin extends StatelessWidget {
+  const _BouncingPin({required this.loop});
+
+  final Animation<double> loop;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: loop,
+      builder: (_, child) {
+        final pulse = 0.5 + 0.5 * math.sin(loop.value * 2 * math.pi);
+        return Transform.translate(offset: Offset(0, -3 * pulse), child: child);
+      },
+      child: const _PlayPin(),
+    );
+  }
+}
+
 /// A little "PLAY" pin (teardrop marker) that hovers over the current world.
 class _PlayPin extends StatelessWidget {
   const _PlayPin();
@@ -643,15 +687,17 @@ class _PinTailPainter extends CustomPainter {
   bool shouldRepaint(_PinTailPainter oldDelegate) => false;
 }
 
-/// The flowing candy road that threads through every world stop.
+/// The flowing candy road that threads through every world stop. Repaints via
+/// the [animation] listenable, so the surrounding widget tree stays static.
 class _TrailPainter extends CustomPainter {
-  _TrailPainter(this.points, this.t);
+  _TrailPainter(this.points, this.animation) : super(repaint: animation);
   final List<Offset> points;
-  final double t;
+  final Animation<double> animation;
 
   @override
   void paint(Canvas canvas, Size size) {
     if (points.length < 2) return;
+    final t = animation.value;
 
     // Smooth path through the stops.
     final path = Path()..moveTo(points.first.dx, points.first.dy);
@@ -697,7 +743,7 @@ class _TrailPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_TrailPainter old) => old.t != t || old.points != points;
+  bool shouldRepaint(_TrailPainter old) => old.points != points;
 }
 
 /// Circular progress ring drawn around an island stop.

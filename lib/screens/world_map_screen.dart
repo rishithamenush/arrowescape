@@ -299,11 +299,26 @@ class _LevelTileState extends State<_LevelTile>
   @override
   void initState() {
     super.initState();
-    if (widget.current) {
+    _syncGlow();
+  }
+
+  @override
+  void didUpdateWidget(covariant _LevelTile old) {
+    super.didUpdateWidget(old);
+    if (old.current != widget.current) _syncGlow();
+  }
+
+  /// Keeps the pulsing-glow controller in step with [_LevelTile.current] —
+  /// tiles gain/lose "current" status in place when a level is beaten.
+  void _syncGlow() {
+    if (widget.current && _glow == null) {
       _glow = AnimationController(
         vsync: this,
         duration: const Duration(milliseconds: 1400),
       )..repeat(reverse: true);
+    } else if (!widget.current && _glow != null) {
+      _glow!.dispose();
+      _glow = null;
     }
   }
 

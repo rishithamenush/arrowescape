@@ -72,17 +72,23 @@ class AudioService {
   }
 
   // ---------- background music ----------
+  /// True while the music was started once and then paused by the toggle —
+  /// lets us resume mid-track instead of restarting the song from zero.
+  bool _musicPaused = false;
+
   Future<void> startMusic() async {
     if (!_musicEnabled || !_ready) return;
     if (FlameAudio.bgm.isPlaying) return;
     try {
       await FlameAudio.bgm.play(_music, volume: _musicVolume);
+      _musicPaused = false;
     } catch (_) {}
   }
 
   void stopMusic() {
     try {
       FlameAudio.bgm.stop();
+      _musicPaused = false;
     } catch (_) {}
   }
 
@@ -96,10 +102,18 @@ class AudioService {
   void setMusicEnabled(bool on) {
     _musicEnabled = on;
     if (on) {
-      startMusic();
+      if (_musicPaused) {
+        try {
+          FlameAudio.bgm.resume();
+          _musicPaused = false;
+        } catch (_) {}
+      } else {
+        startMusic();
+      }
     } else {
       try {
         FlameAudio.bgm.pause();
+        _musicPaused = true;
       } catch (_) {}
     }
   }

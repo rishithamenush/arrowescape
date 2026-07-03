@@ -176,6 +176,15 @@ class BubbleEngine {
     sy = h - r - 6;
     maxRow = math.max(8, ((sy - top - r * 3) / rowH).floor());
     dangerY = sy - r * 2.2;
+    // If the view resizes after boot, keep the grid and maxRow consistent so
+    // no code path can index past grid.length: grow the grid with empty rows,
+    // and never let maxRow orphan rows that were already built.
+    if (_booted && grid.isNotEmpty) {
+      while (grid.length <= maxRow) {
+        grid.add(List<int?>.filled(rowLen(grid.length), null));
+      }
+      if (maxRow < grid.length - 1) maxRow = grid.length - 1;
+    }
   }
 
   void boot(int levelIdx) {
@@ -786,22 +795,76 @@ class BubbleEngine {
     }
     pts.add(Offset(x, y));
 
-    final line = Paint()
-      ..color = const Color(0xD9FFFFFF)
-      ..strokeWidth = 3
-      ..strokeCap = StrokeCap.round
-      ..style = PaintingStyle.stroke;
+    // The guide takes the colour of whatever is loaded in the shooter.
+    final gc = active == 'bomb'
+        ? const Color(0xFFFFB03D)
+        : active == 'clear'
+        ? const Color(0xFFB18CFF)
+        : BubblePalette.base[cur];
+
+    // Cumulative segment lengths so dots can be placed along the polyline.
+    final segLen = <double>[];
+    var total = 0.0;
     for (var i = 1; i < pts.length; i++) {
-      _dashedLine(canvas, pts[i - 1], pts[i], line, 2, 12);
+      final l = (pts[i] - pts[i - 1]).distance;
+      segLen.add(l);
+      total += l;
+    }
+
+    // Marching glow-dots: evenly spaced, flowing towards the target so the
+    // guide reads as motion, tapering and fading with distance.
+    const gap = 22.0;
+    final phase = (_clock * 110) % gap;
+    final glow = Paint()
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
+    final core = Paint();
+    for (var dist = r * 1.5 + phase; dist < total - r * 0.5; dist += gap) {
+      final p = _pathPoint(pts, segLen, dist);
+      final f = (dist / total).clamp(0.0, 1.0);
+      final dr = r * (0.18 - 0.07 * f);
+      final a = 1.0 - 0.45 * f;
+      glow.color = gc.withValues(alpha: a * 0.55);
+      core.color = Colors.white.withValues(alpha: a);
+      canvas.drawCircle(p, dr * 1.9, glow);
+      canvas.drawCircle(p, dr, core);
+    }
+
+    // Landing marker: one subtle bubble-sized, low-opacity circle — the same
+    // for normal, bomb and clear shots. Normal shots sit in the exact cell
+    // the bubble will snap into; power-ups mark their impact point.
+    final end = pts.last;
+    final pulse = 0.5 + 0.5 * math.sin(_clock * 2 * math.pi * 1.4);
+    Offset g = end;
+    if (active == null) {
+      final cell = _snapCell(end.dx, end.dy);
+      g = Offset(cellX(cell[0], cell[1]), cellY(cell[0]));
     }
     canvas.drawCircle(
-      Offset(x, y),
-      r * 0.92,
-      Paint()
-        ..color = BubblePalette.base[cur].withValues(alpha: 0.9)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2.5,
+      g,
+      r - 1,
+      Paint()..color = gc.withValues(alpha: 0.15 + 0.08 * pulse),
     );
+    canvas.drawCircle(
+      g,
+      r - 1,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.5
+        ..color = Colors.white.withValues(alpha: 0.30 + 0.15 * pulse),
+    );
+  }
+
+  /// Point at [dist] along the polyline described by [pts] / [segLen].
+  Offset _pathPoint(List<Offset> pts, List<double> segLen, double dist) {
+    var left = dist;
+    for (var i = 0; i < segLen.length; i++) {
+      if (left <= segLen[i]) {
+        final t = segLen[i] == 0 ? 0.0 : left / segLen[i];
+        return Offset.lerp(pts[i], pts[i + 1], t)!;
+      }
+      left -= segLen[i];
+    }
+    return pts.last;
   }
 
   void _dashedLine(
