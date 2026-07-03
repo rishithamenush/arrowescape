@@ -126,113 +126,157 @@ class _LevelSelectScreenState extends State<LevelSelectScreen>
   }
 
   // ---------- header ----------
+  /// One frosted command strip: back · title + overall star progress · badge.
   Widget _header(GameState state) {
     final total = state.progress.fold<int>(0, (s, v) => s + v);
     final maxStars = state.progress.length * 3;
+    final frac = maxStars == 0 ? 0.0 : total / maxStars;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 12, 14, 6),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () => Navigator.of(context).pop(),
-            behavior: HitTestBehavior.opaque,
-            child: const LiquidGlass(
-              radius: 16,
-              blur: 14,
-              child: SizedBox(
-                width: 46,
-                height: 46,
-                child: Icon(
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
+      child: LiquidGlass(
+        radius: 26,
+        blur: 16,
+        opacity: 0.55,
+        padding: const EdgeInsets.all(10),
+        child: Row(
+          children: [
+            GestureDetector(
+              onTap: () => Navigator.of(context).pop(),
+              behavior: HitTestBehavior.opaque,
+              child: Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withValues(alpha: 0.65),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.8),
+                    width: 1.2,
+                  ),
+                ),
+                child: const Icon(
                   Icons.chevron_left_rounded,
                   color: AppColors.accent,
-                  size: 30,
+                  size: 28,
                 ),
               ),
             ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: LiquidGlass(
-              radius: 20,
-              blur: 16,
-              padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
-              child: Row(
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        ShaderMask(
-                          shaderCallback: (rect) => const LinearGradient(
-                            colors: [Color(0xFFFF7AB0), AppColors.accent],
-                          ).createShader(rect),
-                          child: const Text(
-                            'Worlds',
-                            style: TextStyle(
-                              fontSize: 26,
-                              height: 1,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 1),
-                        const Text(
-                          'Follow the trail to play',
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      ShaderMask(
+                        shaderCallback: (rect) => const LinearGradient(
+                          colors: [Color(0xFFFF7AB0), AppColors.accent],
+                        ).createShader(rect),
+                        child: const Text(
+                          'Worlds',
                           style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                            color: AppColors.muted,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 7,
-                    ),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [Color(0xFFFFD76B), Color(0xFFFFB020)],
-                      ),
-                      borderRadius: BorderRadius.circular(40),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Color(0xFFD77A1E),
-                          offset: Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Text(
-                          '★',
-                          style: TextStyle(fontSize: 16, color: Colors.white),
-                        ),
-                        const SizedBox(width: 5),
-                        Text(
-                          '$total/$maxStars',
-                          style: const TextStyle(
-                            fontSize: 14,
+                            fontSize: 24,
+                            height: 1,
                             fontWeight: FontWeight.w800,
                             color: Colors.white,
                           ),
                         ),
-                      ],
+                      ),
+                      const SizedBox(width: 8),
+                      // Flexible so it ellipsizes on narrow screens instead
+                      // of overflowing the header row.
+                      Flexible(
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 1),
+                          child: Text(
+                            '${(frac * 100).round()}% COMPLETE',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 1,
+                              color: AppColors.label,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 7),
+                  // Overall star-collection progress.
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(5),
+                    child: SizedBox(
+                      height: 9,
+                      child: Stack(
+                        children: [
+                          Positioned.fill(
+                            child: ColoredBox(
+                              color: Colors.white.withValues(alpha: 0.6),
+                            ),
+                          ),
+                          FractionallySizedBox(
+                            alignment: Alignment.centerLeft,
+                            widthFactor: frac.clamp(0.0, 1.0),
+                            heightFactor: 1,
+                            child: const DecoratedBox(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    Color(0xFFFFD76B),
+                                    Color(0xFFFFB020),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
-          ),
-        ],
+            const SizedBox(width: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFFFFD76B), Color(0xFFFFB020)],
+                ),
+                borderRadius: BorderRadius.circular(40),
+                border: Border.all(color: Colors.white, width: 1.6),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFFD77A1E).withValues(alpha: 0.45),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.star_rounded, size: 18, color: Colors.white),
+                  const SizedBox(width: 4),
+                  Text(
+                    '$total/$maxStars',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -296,9 +340,9 @@ class _LevelSelectScreenState extends State<LevelSelectScreen>
       if (isCurrent) {
         widgets.add(
           Positioned(
-            left: p.dx - 38,
+            left: p.dx - 46,
             top: p.dy - _node / 2 - 30,
-            width: 76,
+            width: 92,
             child: IgnorePointer(
               child: Center(child: _BouncingPin(loop: _loop)),
             ),
@@ -396,38 +440,60 @@ class _IslandStopState extends State<_IslandStop> {
                   color: widget.section.shadow,
                 ),
               ),
-              // Island body.
+              // Island body — glossy candy orb when unlocked, frosted glass
+              // "mystery" disc when locked.
               Container(
                 width: d - 16,
                 height: d - 16,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: grad,
-                  ),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.75),
-                    width: 3,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: shadow.withValues(alpha: 0.55),
-                      blurRadius: 10,
-                      offset: const Offset(0, 6),
-                    ),
-                  ],
-                ),
+                decoration: widget.unlocked
+                    ? BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: RadialGradient(
+                          center: const Alignment(-0.35, -0.45),
+                          radius: 1.15,
+                          colors: [grad.first, grad.last],
+                        ),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.85),
+                          width: 3,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: shadow.withValues(alpha: 0.5),
+                            blurRadius: 12,
+                            offset: const Offset(0, 6),
+                          ),
+                          BoxShadow(
+                            color: Colors.white.withValues(alpha: 0.5),
+                            blurRadius: 6,
+                            spreadRadius: -3,
+                          ),
+                        ],
+                      )
+                    : BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white.withValues(alpha: 0.5),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.8),
+                          width: 2,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.1),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
                 child: Center(
                   // Locked worlds stay a mystery — hide the themed emoji and
                   // show only a lock until the world is unlocked.
                   child: widget.unlocked
                       ? Text(s.emoji, style: const TextStyle(fontSize: 34))
-                      : const Icon(
+                      : Icon(
                           Icons.lock_rounded,
-                          color: Colors.white,
-                          size: 32,
+                          color: AppColors.muted.withValues(alpha: 0.8),
+                          size: 30,
                         ),
                 ),
               ),
@@ -645,10 +711,11 @@ class _PlayPin extends StatelessWidget {
               colors: [AppColors.pinkLight, AppColors.pink],
             ),
             borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.white, width: 1.6),
             boxShadow: [
               BoxShadow(
-                color: AppColors.pinkShadow,
-                blurRadius: 6,
+                color: AppColors.pinkShadow.withValues(alpha: 0.55),
+                blurRadius: 10,
                 offset: const Offset(0, 3),
               ),
             ],
@@ -663,7 +730,7 @@ class _PlayPin extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w800,
-                  letterSpacing: 0.5,
+                  letterSpacing: 1,
                   color: Colors.white,
                 ),
               ),
@@ -720,35 +787,63 @@ class _TrailPainter extends CustomPainter {
     }
     path.lineTo(points.last.dx, points.last.dy);
 
-    // Outer white casing.
+    // Soft blurred under-shadow so the road floats over the artwork.
     canvas.drawPath(
       path,
       Paint()
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 22
+        ..strokeWidth = 26
         ..strokeCap = StrokeCap.round
         ..strokeJoin = StrokeJoin.round
-        ..color = Colors.white.withValues(alpha: 0.6),
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6)
+        ..color = const Color(0x26C05A8A),
     );
-    // Inner pink ribbon.
+    // Bright white casing.
     canvas.drawPath(
       path,
       Paint()
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 11
+        ..strokeWidth = 20
         ..strokeCap = StrokeCap.round
         ..strokeJoin = StrokeJoin.round
-        ..color = const Color(0x55FF7AB0),
+        ..color = Colors.white.withValues(alpha: 0.85),
+    );
+    // Inner candy ribbon: a soft rainbow gradient flowing down the trail.
+    canvas.drawPath(
+      path,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 10
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round
+        ..shader = const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          tileMode: TileMode.mirror,
+          colors: [
+            Color(0xB3FFB3D2),
+            Color(0xB3FFD9A8),
+            Color(0xB3B9F0DC),
+            Color(0xB3BFD9FF),
+            Color(0xB3FFB3D2),
+          ],
+        ).createShader(path.getBounds()),
     );
 
-    // Flowing dots travelling down the road.
-    final dot = Paint()..color = Colors.white;
+    // Flowing glow-dots travelling down the road.
+    final glow = Paint()
+      ..color = Colors.white.withValues(alpha: 0.5)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3);
+    final core = Paint()..color = Colors.white;
     for (final metric in path.computeMetrics()) {
-      var d = (t * 28) % 28;
+      var d = (t * 30) % 30;
       while (d < metric.length) {
         final tan = metric.getTangentForOffset(d);
-        if (tan != null) canvas.drawCircle(tan.position, 3, dot);
-        d += 28;
+        if (tan != null) {
+          canvas.drawCircle(tan.position, 4.4, glow);
+          canvas.drawCircle(tan.position, 2.6, core);
+        }
+        d += 30;
       }
     }
   }
@@ -771,20 +866,35 @@ class _RingPainter extends CustomPainter {
       center,
       radius,
       Paint()
-        ..color = Colors.white.withValues(alpha: 0.18)
+        ..color = Colors.white.withValues(alpha: 0.35)
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 4,
+        ..strokeWidth = 5,
     );
     if (progress > 0) {
+      final rect = Rect.fromCircle(center: center, radius: radius);
+      final sweep = 2 * math.pi * progress.clamp(0, 1);
+      // Soft glow under the arc, then the crisp arc itself.
       canvas.drawArc(
-        Rect.fromCircle(center: center, radius: radius),
+        rect,
         -math.pi / 2,
-        2 * math.pi * progress.clamp(0, 1),
+        sweep,
         false,
         Paint()
-          ..color = color.withValues(alpha: 0.5)
+          ..color = color.withValues(alpha: 0.45)
           ..style = PaintingStyle.stroke
-          ..strokeWidth = 4
+          ..strokeWidth = 7
+          ..strokeCap = StrokeCap.round
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3),
+      );
+      canvas.drawArc(
+        rect,
+        -math.pi / 2,
+        sweep,
+        false,
+        Paint()
+          ..color = color.withValues(alpha: 0.85)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 5
           ..strokeCap = StrokeCap.round,
       );
     }

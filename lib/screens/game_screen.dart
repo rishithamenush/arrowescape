@@ -218,12 +218,19 @@ class _GameScreenState extends State<GameScreen> {
         children: [
           Positioned.fill(child: _background(s)),
           SafeArea(
-            child: Column(
-              children: [
-                _hud(s),
-                Expanded(child: _board()),
-                _dock(),
-              ],
+            // Cap the playfield width so bubbles stay a sane size on
+            // tablets / wide screens; phones are unaffected.
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 560),
+                child: Column(
+                  children: [
+                    _hud(s),
+                    Expanded(child: _board()),
+                    _dock(),
+                  ],
+                ),
+              ),
             ),
           ),
           // Floating combo banner just under the HUD.
@@ -291,10 +298,7 @@ class _GameScreenState extends State<GameScreen> {
             const SizedBox(width: 10),
             Expanded(child: _scorePanel(s)),
             const SizedBox(width: 10),
-            _MovesRing(
-              shots: _engine.shots,
-              maxShots: _engine.maxShots,
-            ),
+            _MovesRing(shots: _engine.shots, maxShots: _engine.maxShots),
           ],
         ),
       ),
@@ -592,7 +596,10 @@ class _GameScreenState extends State<GameScreen> {
         colors: [Colors.white.withValues(alpha: 0.8), color],
         stops: const [0, 0.45],
       ),
-      border: Border.all(color: Colors.white.withValues(alpha: 0.7), width: 1.5),
+      border: Border.all(
+        color: Colors.white.withValues(alpha: 0.7),
+        width: 1.5,
+      ),
       boxShadow: [
         BoxShadow(
           color: color.withValues(alpha: 0.45),
@@ -618,13 +625,18 @@ class _GameScreenState extends State<GameScreen> {
               children: [
                 if (behind != null) Positioned.fill(child: behind),
                 Center(
-                  child: TweenAnimationBuilder<double>(
-                    tween: Tween(begin: 0.3, end: 1),
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeOutBack,
-                    builder: (_, v, c) =>
-                        Transform.scale(scale: v.clamp(0, 1.1), child: c),
-                    child: child,
+                  // Scrolls only when the card is taller than the screen
+                  // (short devices / large text scale) — otherwise centred.
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(vertical: 24),
+                    child: TweenAnimationBuilder<double>(
+                      tween: Tween(begin: 0.3, end: 1),
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeOutBack,
+                      builder: (_, v, c) =>
+                          Transform.scale(scale: v.clamp(0, 1.1), child: c),
+                      child: child,
+                    ),
                   ),
                 ),
               ],
@@ -1037,10 +1049,8 @@ class _MovesRingState extends State<_MovesRing>
         : Color.lerp(AppColors.accent, AppColors.amber, frac / 0.55)!;
     return AnimatedBuilder(
       animation: _pulse,
-      builder: (_, child) => Transform.scale(
-        scale: 1 + 0.07 * _pulse.value,
-        child: child,
-      ),
+      builder: (_, child) =>
+          Transform.scale(scale: 1 + 0.07 * _pulse.value, child: child),
       child: TweenAnimationBuilder<double>(
         tween: Tween(end: frac),
         duration: const Duration(milliseconds: 350),
@@ -1281,9 +1291,7 @@ class _WinStarsState extends State<_WinStars>
       builder: (_, __) {
         return Row(
           mainAxisSize: MainAxisSize.min,
-          children: [
-            for (var k = 0; k < 3; k++) _star(k),
-          ],
+          children: [for (var k = 0; k < 3; k++) _star(k)],
         );
       },
     );

@@ -22,10 +22,17 @@ class WorldMapScreen extends StatefulWidget {
 class _WorldMapScreenState extends State<WorldMapScreen> {
   final ScrollController _scroll = ScrollController();
 
-  static const int _cols = 3;
   static const double _pad = 18;
   static const double _gap = 14;
   static const double _aspect = 0.86; // tile width / height
+
+  /// Adaptive column count so tiles stay a comfortable size on phones
+  /// and tablets alike.
+  static int _colsFor(double width) => width >= 900
+      ? 6
+      : width >= 600
+      ? 5
+      : 3;
 
   @override
   void initState() {
@@ -36,9 +43,10 @@ class _WorldMapScreenState extends State<WorldMapScreen> {
       final local = state.unlocked - widget.section.start;
       if (local < 0 || local >= widget.section.count) return;
       final width = MediaQuery.sizeOf(context).width;
-      final tileW = (width - _pad * 2 - _gap * (_cols - 1)) / _cols;
+      final cols = _colsFor(width);
+      final tileW = (width - _pad * 2 - _gap * (cols - 1)) / cols;
       final rowH = tileW / _aspect + _gap;
-      final row = local ~/ _cols;
+      final row = local ~/ cols;
       final target = row * rowH - _scroll.position.viewportDimension / 2;
       _scroll.jumpTo(target.clamp(0, _scroll.position.maxScrollExtent));
     });
@@ -83,13 +91,14 @@ class _WorldMapScreenState extends State<WorldMapScreen> {
                   child: GridView.builder(
                     controller: _scroll,
                     padding: const EdgeInsets.fromLTRB(_pad, 6, _pad, 28),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: _cols,
-                          mainAxisSpacing: _gap,
-                          crossAxisSpacing: _gap,
-                          childAspectRatio: _aspect,
-                        ),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: _colsFor(
+                        MediaQuery.sizeOf(context).width,
+                      ),
+                      mainAxisSpacing: _gap,
+                      crossAxisSpacing: _gap,
+                      childAspectRatio: _aspect,
+                    ),
                     itemCount: s.count,
                     itemBuilder: (context, i) {
                       final global = s.start + i;

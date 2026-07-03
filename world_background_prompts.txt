@@ -1,0 +1,926 @@
+================================================================
+BUBBLE POP — GAME SCREEN BACKGROUND IMAGE PROMPTS (67 WORLDS)
+================================================================
+
+HOW TO USE
+----------
+- One prompt per world (the game has 67 worlds x 15 levels; all levels in a
+  world share one background, tinted by the game at runtime).
+- Every prompt is standalone: paste it directly into your image generator.
+- If your generator supports a reference image, also attach
+  assets/boba/chara1.png so "Boba the mascot" matches your real character.
+- Recommended output: portrait 9:16, at least 1080x1920 (or 1024x1820).
+
+GOLDEN RULES (already written into every prompt)
+------------------------------------------------
+1) READABILITY FIRST — the middle of the image stays soft, bright and almost
+   empty. All scenery lives in the bottom third, the far horizon, and the
+   side edges. Colorful game bubbles must stay easy to see on top of it.
+2) CHARACTER CAMEO — Boba, the game's cute round bubble-tea pearl mascot with
+   big sparkly eyes and tiny arms, appears SMALL in a bottom corner, never in
+   the center.
+3) NEXT-WORLD TEASER — a tiny glimpse of the NEXT world appears far away on
+   the horizon (a silhouette, a glow, a signpost), so the player wonders
+   "what is that place?" and keeps playing to reach it.
+4) NO text, NO logos, NO UI elements, NO real-world brands.
+
+NEGATIVE PROMPT (use if your tool has one)
+------------------------------------------
+text, watermark, logo, UI, buttons, busy center, high contrast center,
+dark colors, photorealism, clutter, people, harsh shadows
+
+================================================================
+WORLD 1 — CANDY TOWN
+================================================================
+Mobile game background, portrait 9:16, soft dreamy candy-pastel cartoon
+style, bright airy light, smooth rounded shapes, center of image nearly
+empty and softly lit for gameplay, no text. A cheerful pink candy village
+along the bottom edge: little houses with wafer roofs, candy-cane lamp
+posts, cobblestones made of pastel buttons. Boba, a cute round bubble-tea
+pearl mascot with big sparkly eyes, waves happily from the bottom-left
+corner. Far away on the top horizon, a mysterious green gummy forest
+glimmers behind rolling sugar hills, inviting the player onward.
+
+================================================================
+WORLD 2 — GUMMY GROVE
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+bright airy light, center kept soft and uncluttered for gameplay, no text.
+A glossy gummy-bear forest along the bottom and side edges: translucent
+green and red gummy trees, jelly leaves catching the light, tiny gummy
+bears peeking between trunks. Boba the round bubble-tea pearl mascot hides
+playfully behind a gummy tree in the bottom-right corner. On the far
+horizon, faint brown chocolate cliffs rise into soft clouds, hinting at
+the next adventure.
+
+================================================================
+WORLD 3 — CHOCO CLIFFS
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+bright warm light, center soft and nearly empty for gameplay, no text.
+Smooth milk-chocolate cliffs frame the bottom corners, drizzled with white
+icing waterfalls and chunks of hazelnut rock. Boba the cute bubble-tea
+pearl mascot climbs a tiny chocolate ledge in the bottom-left, wearing a
+little explorer hat. Far beyond the cliffs, a soft blue berry-colored bay
+sparkles on the horizon, teasing the world to come.
+
+================================================================
+WORLD 4 — BERRY BAY
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+bright airy light, uncluttered soft center for gameplay, no text. A calm
+blueberry-blue bay along the bottom: jelly waves, raspberry buoys,
+a little dock made of cookie planks. Boba the round bubble-tea pearl
+mascot sits on the dock in the bottom-right, dipping tiny feet in the
+jelly water. On the far horizon a fresh green minty meadow rolls under
+fluffy clouds, making the player curious about the next stop.
+
+================================================================
+WORLD 5 — MINTY MEADOW
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+fresh bright light, center soft and open for gameplay, no text. Cool
+mint-green meadows across the bottom edge with peppermint flowers,
+spearmint leaves and tiny sugar butterflies. Boba the cute bubble-tea
+pearl mascot lies in the mint grass bottom-left, blowing a dandelion made
+of sugar. Far on the horizon, a swirl of giant rainbow lollipops lines a
+tiny winding lane, teasing the next world.
+
+================================================================
+WORLD 6 — LOLLIPOP LANE
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+bright cheerful light, soft empty center for gameplay, no text. A winding
+lane bordered by giant swirl lollipops in pink, mint and lemon along the
+bottom and lower sides, with candy pebbles and swirl signs. Boba the round
+bubble-tea pearl mascot skips along the lane in the bottom-right corner
+holding a tiny lollipop. On the distant horizon, a golden caramel cove
+glows warm and syrupy, inviting the player onward.
+
+================================================================
+WORLD 7 — CARAMEL COVE
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+warm golden light, center soft and clear for gameplay, no text. A cozy
+cove of flowing golden caramel along the bottom: caramel waves lapping a
+butterscotch beach, toffee rocks, a caramel-drizzle waterfall on one side.
+Boba the cute bubble-tea pearl mascot builds a caramel sandcastle in the
+bottom-left. Far away, a cluster of giant floating soap-like bubbles
+shimmers over the water, teasing the next world.
+
+================================================================
+WORLD 8 — BUBBLE BANKS
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+bright iridescent light, uncluttered pale center for gameplay, no text.
+Riverbanks made of foam and iridescent floating bubbles along the bottom
+edge, with bubble reeds and pearl stones. Boba the round bubble-tea pearl
+mascot floats inside a big transparent bubble in the bottom-right,
+giggling. On the far horizon, pastel sherbet-colored springs steam gently
+in orange and pink, hinting at what comes next.
+
+================================================================
+WORLD 9 — SHERBET SPRINGS
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+bright airy light, soft open center for gameplay, no text. Steaming pastel
+hot springs of orange, raspberry and lemon sherbet along the bottom, with
+scoop-shaped stones and wafer bridges. Boba the cute bubble-tea pearl
+mascot relaxes in a sherbet pool bottom-left with a tiny towel on its
+head. Far on the horizon, fields of swirled white frosting roll like snow
+dunes, teasing the next world.
+
+================================================================
+WORLD 10 — FROSTING FIELDS
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+bright creamy light, center soft and empty for gameplay, no text. Rolling
+fields of swirled vanilla and strawberry frosting across the bottom,
+dotted with sprinkle flowers and a cupcake farmhouse at one edge. Boba the
+round bubble-tea pearl mascot rides a tiny frosting wave in the
+bottom-right. On the far horizon, puffy marshmallow clouds sit low over a
+misty marsh, making the player wonder what's ahead.
+
+================================================================
+WORLD 11 — MARSHMALLOW MARSH
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+soft misty morning light, pale uncluttered center for gameplay, no text.
+A dreamy marsh of giant squishy marshmallows along the bottom, mist
+curling between them, lily pads made of white chocolate. Boba the cute
+bubble-tea pearl mascot bounces on a marshmallow in the bottom-left,
+mid-jump with a happy face. Far away, a colorful junction of jellybean
+paths sparkles through the mist, teasing the next world.
+
+================================================================
+WORLD 12 — JELLYBEAN JUNCTION
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+bright playful light, soft clear center for gameplay, no text. A cheerful
+crossroads paved with glossy jellybeans in every color along the bottom
+edge, with jellybean signposts pointing in fun directions. Boba the round
+bubble-tea pearl mascot sits on a giant purple jellybean in the
+bottom-right, looking at a tiny candy map. On the horizon, a canyon of
+giant cupcakes rises in warm pink light, inviting the player onward.
+
+================================================================
+WORLD 13 — CUPCAKE CANYON
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+warm bright light, center soft and open for gameplay, no text. A grand
+canyon whose rock layers are giant stacked cupcakes with frosting rims,
+cherry boulders on ledges, along the bottom and lower sides. Boba the cute
+bubble-tea pearl mascot peeks over a frosting ledge in the bottom-left.
+Far above the canyon on the horizon, a striped peppermint mountain peak
+sparkles with sugar snow, teasing the next world.
+
+================================================================
+WORLD 14 — PEPPERMINT PEAK
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+crisp bright light, pale soft center for gameplay, no text. A majestic
+red-and-white striped peppermint mountain in the bottom corners, with
+sugar-snow slopes and candy-cane pine trees. Boba the round bubble-tea
+pearl mascot wears a tiny scarf and plants a small candy flag in the
+bottom-right. On the far horizon a golden trail of toffee winds through
+amber hills, hinting at the journey ahead.
+
+================================================================
+WORLD 15 — TOFFEE TRAIL
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+warm amber light, soft uncluttered center for gameplay, no text. A winding
+golden toffee path across the bottom edge, bordered by butterscotch
+boulders and caramel grass. Boba the cute bubble-tea pearl mascot walks
+the trail bottom-left with a tiny walking stick. Far on the horizon,
+purple sugarplum dunes shimmer under a soft violet sky, teasing the
+next world.
+
+================================================================
+WORLD 16 — SUGARPLUM SANDS
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+soft violet-gold light, clear soft center for gameplay, no text. A desert
+of fine sparkling purple sugar dunes along the bottom, with crystallized
+plum cacti and a tiny oasis of grape jelly. Boba the round bubble-tea
+pearl mascot surfs down a dune on a wafer board in the bottom-right. On
+the far horizon, a deep brown fudge forest stands in cozy shadow,
+inviting the player onward.
+
+================================================================
+WORLD 17 — FUDGE FOREST
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+warm dappled light, center kept pale and open for gameplay, no text. A
+forest of thick fudge trees with walnut bark and mint-leaf canopies along
+the bottom and side edges. Boba the cute bubble-tea pearl mascot peeks out
+of a hollow fudge trunk in the bottom-left. Far beyond the trees, a dark
+glossy licorice lagoon glints with pink jelly lilies, teasing the
+next world.
+
+================================================================
+WORLD 18 — LICORICE LAGOON
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+cool evening-pastel light, soft empty center for gameplay, no text. A calm
+lagoon of glossy black-cherry licorice water along the bottom, with red
+licorice vines, twisted licorice trees and pink jelly lotus flowers. Boba
+the round bubble-tea pearl mascot paddles a tiny wafer boat bottom-right.
+On the golden horizon, hexagon honeycomb hills drip with honey light,
+hinting at what's next.
+
+================================================================
+WORLD 19 — HONEYCOMB HILLS
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+golden honey light, soft clear center for gameplay, no text. Rolling hills
+built from giant honeycomb hexagons along the bottom, honey drizzles
+flowing between cells, sugar bees with tiny smiles floating near the
+edges. Boba the cute bubble-tea pearl mascot dips a paw in a honey pool
+bottom-left. High on the far horizon, a fluffy white cotton-candy cloud
+kingdom floats in the sky, teasing the next world.
+
+================================================================
+WORLD 20 — COTTON CLOUD
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+bright heavenly light, pale soft center for gameplay, no text. A sky world
+of pink and white cotton-candy clouds along the bottom and side edges,
+with a rainbow ribbon bridge and floating sugar stars. Boba the round
+bubble-tea pearl mascot naps on a cloud in the bottom-right with tiny
+Zzz bubbles. Far below on the horizon, flat pastel macaron mesas stack
+like plateaus, inviting the player to descend next.
+
+================================================================
+WORLD 21 — MACARON MESA
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+warm desert-pastel light, uncluttered soft center for gameplay, no text.
+Flat-topped mesas made of giant stacked macarons — pistachio, rose and
+lavender — along the bottom edge with cream filling ledges. Boba the cute
+bubble-tea pearl mascot sits on a macaron edge bottom-left, legs
+swinging. On the cool far horizon, a snowy chocolate-truffle tundra
+sparkles with cocoa dust, teasing the next world.
+
+================================================================
+WORLD 22 — TRUFFLE TUNDRA
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+cool crisp light, pale open center for gameplay, no text. A snowy tundra
+dotted with giant cocoa-dusted chocolate truffles like boulders along the
+bottom, powdered-sugar snow drifting at the edges. Boba the round
+bubble-tea pearl mascot wears earmuffs and rolls a tiny truffle snowball
+bottom-right. Far on the horizon, a warm beach glitters with rainbow
+sprinkles, hinting at sunnier levels ahead.
+
+================================================================
+WORLD 23 — SPRINKLE SHORES
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+bright beach light, soft clear center for gameplay, no text. A festive
+shoreline where the sand is made of rainbow sprinkles along the bottom,
+with frosting waves and a beach umbrella made of a giant candy swirl.
+Boba the cute bubble-tea pearl mascot sunbathes on a wafer towel
+bottom-left wearing tiny sunglasses. In a cozy corner of the far horizon,
+a snug nougat cottage nook glows warmly, teasing the next world.
+
+================================================================
+WORLD 24 — NOUGAT NOOK
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+cozy warm light, center soft and empty for gameplay, no text. A snug
+hollow of creamy nougat cliffs studded with almonds and pistachios along
+the bottom corners, with a tiny hammock strung between nut boulders. Boba
+the round bubble-tea pearl mascot swings in the hammock bottom-right
+sipping tiny tea. On the far horizon, a river delta of giant glazed
+donuts splits into sweet streams, inviting the player onward.
+
+================================================================
+WORLD 25 — DONUT DELTA
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+bright morning light, soft uncluttered center for gameplay, no text. A
+river delta where streams of glaze flow around giant donut islands with
+pink icing and sprinkles, along the bottom edge. Boba the cute bubble-tea
+pearl mascot floats on a donut like a swim ring in the bottom-left. Far
+upstream on the horizon, a golden waffle forest rises with syrup mist,
+teasing the next world.
+
+================================================================
+WORLD 26 — WAFFLE WOODS
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+warm golden light, pale soft center for gameplay, no text. Woods of tall
+crispy waffle trees with butter-square leaves and syrup dew along the
+bottom and sides. Boba the round bubble-tea pearl mascot collects tiny
+syrup drops in a jar bottom-right. Deep on the horizon, the mouth of a
+glowing custard cavern shimmers gold and mysterious, hinting at the
+next world.
+
+================================================================
+WORLD 27 — CUSTARD CAVERNS
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+soft golden glow, center kept pale and clear for gameplay, no text. A
+gentle cavern of smooth custard-yellow stone along the bottom corners,
+with caramel stalactites and glowing crystal sugar clusters. Boba the
+cute bubble-tea pearl mascot holds a tiny lantern in the bottom-left. At
+the cave opening far on the horizon, endless wheat-gold praline prairies
+wave in the breeze, teasing the wide-open world to come.
+
+================================================================
+WORLD 28 — PRALINE PRAIRIE
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+wide bright light, soft open center for gameplay, no text. Endless golden
+prairie of caramel grass and scattered praline clusters like haystacks
+along the bottom, with a tiny windmill made of wafer blades. Boba the
+round bubble-tea pearl mascot rides a tumbling praline bottom-right. Far
+away on the horizon, a cool pastel sorbet summit rises in scoops of
+peach and berry, inviting the climb ahead.
+
+================================================================
+WORLD 29 — SORBET SUMMIT
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+cool fresh light, pale uncluttered center for gameplay, no text. A
+mountain of stacked sorbet scoops — peach, raspberry, lime — with melty
+edges along the bottom corners. Boba the cute bubble-tea pearl mascot
+climbs with a tiny ice axe made of a spoon bottom-left. On the rugged far
+horizon, a cliff of golden peanut brittle juts over the clouds, teasing
+the next world.
+
+================================================================
+WORLD 30 — BRITTLE BLUFF
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+warm amber light, soft empty center for gameplay, no text. Dramatic bluffs
+of glassy golden peanut brittle with embedded nuts along the bottom edge,
+brittle shards catching sunlight. Boba the round bubble-tea pearl mascot
+peers over the edge with binoculars bottom-right. Far below in a green
+valley on the horizon, colorful gumdrops fill a winding gully like round
+boulders, hinting at what's next.
+
+================================================================
+WORLD 31 — GUMDROP GULLY
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+bright cheerful light, clear soft center for gameplay, no text. A cozy
+green gully filled with giant sugar-coated gumdrops in lime, orange and
+berry along the bottom, a tiny stream of soda water bubbling through.
+Boba the cute bubble-tea pearl mascot hops from gumdrop to gumdrop
+bottom-left. Above on the far horizon, a swirled white meringue mountain
+towers into the sky, teasing the next world.
+
+================================================================
+WORLD 32 — MERINGUE MOUNT
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+crisp white light, pale soft center for gameplay, no text. A grand
+mountain of whipped meringue peaks with toasted golden tips along the
+bottom corners, sugar mist around the slopes. Boba the round bubble-tea
+pearl mascot slides down a meringue swirl bottom-right, arms up in joy.
+On the warm horizon, a river bends through butterscotch hills in golden
+light, inviting the player onward.
+
+================================================================
+WORLD 33 — BUTTERSCOTCH BEND
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+warm golden-hour light, soft open center for gameplay, no text. A lazy
+river of liquid butterscotch making a wide bend through toffee banks
+along the bottom, with butter-boulders and caramel reeds. Boba the cute
+bubble-tea pearl mascot fishes with a licorice rod bottom-left. Far
+across the flat horizon, wobbling towers of golden pudding shimmer on
+wide plains, teasing the next world.
+
+================================================================
+WORLD 34 — PUDDING PLAINS
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+soft warm light, uncluttered pale center for gameplay, no text. Wide
+plains of wobbly caramel pudding with glossy tops along the bottom edge,
+each pudding mound jiggling with a cherry on top. Boba the round
+bubble-tea pearl mascot bounces on a pudding trampoline bottom-right. On
+the colorful far horizon, a stretchy rainbow taffy town twists its
+buildings like ribbons, hinting at what's next.
+
+================================================================
+WORLD 35 — TAFFY TOWN
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+bright playful light, soft clear center for gameplay, no text. A whimsical
+town where every building is stretched and twisted salt-water taffy in
+pastel stripes along the bottom, taffy bridges looping between rooftops.
+Boba the cute bubble-tea pearl mascot pulls a piece of stretchy taffy
+bottom-left. On the misty far horizon, a river estuary lined with glossy
+chocolate eclairs meets the sea, teasing the next world.
+
+================================================================
+WORLD 36 — ECLAIR ESTUARY
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+soft river light, pale empty center for gameplay, no text. An estuary
+where cream rivers meet a cocoa sea, banks lined with giant glossy
+chocolate-topped eclairs like canoes, along the bottom edge. Boba the
+round bubble-tea pearl mascot paddles an eclair boat bottom-right. High
+on the far horizon, a twisted pretzel mountain pass with salt-crystal
+snow zigzags upward, inviting the climb ahead.
+
+================================================================
+WORLD 37 — PRETZEL PASS
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+crisp mountain light, soft open center for gameplay, no text. A winding
+mountain pass built from giant twisted pretzels with salt-crystal
+sparkles along the bottom corners, rope bridges of pretzel sticks. Boba
+the cute bubble-tea pearl mascot crosses a pretzel bridge bottom-left
+with a tiny backpack. Below on the gentle horizon, a soft valley of white
+vanilla flowers glows in cream light, teasing the next world.
+
+================================================================
+WORLD 38 — VANILLA VALLEY
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+gentle cream light, pale soft center for gameplay, no text. A peaceful
+valley of vanilla-cream hills dotted with white chocolate daisies and
+vanilla-bean trees along the bottom. Boba the round bubble-tea pearl
+mascot smells a giant vanilla flower bottom-right. Far on the horizon, a
+dark cocoa volcano crater glows with warm molten chocolate light,
+hinting at a dramatic world ahead.
+
+================================================================
+WORLD 39 — COCOA CRATER
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+warm dramatic-but-friendly light, soft uncluttered center for gameplay,
+no text. The rim of a gentle volcano crater flowing with glossy molten
+chocolate along the bottom edge, cocoa smoke puffs shaped like hearts,
+chocolate rock formations. Boba the cute bubble-tea pearl mascot roasts a
+marshmallow on a stick bottom-left. Far beyond the crater on the bright
+horizon, a cheerful bonbon-covered beach sparkles by a candy sea,
+teasing the next world.
+
+================================================================
+WORLD 40 — BONBON BEACH
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+bright seaside light, clear soft center for gameplay, no text. A sunny
+beach scattered with shiny wrapped bonbons like beach balls along the
+bottom, foil wrappers glinting, waves of vanilla foam. Boba the round
+bubble-tea pearl mascot builds a bonbon pyramid bottom-right. On the
+sparkling far horizon, a bright yellow lemonade lake fizzes with bubbles
+and lemon-slice boats, inviting the player onward.
+
+================================================================
+WORLD 41 — LEMONADE LAKE
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+fresh sunny light, pale open center for gameplay, no text. A sparkling
+lake of fizzy lemonade with rising bubble streams along the bottom,
+lemon-slice lily pads and a striped-straw pier. Boba the cute bubble-tea
+pearl mascot sips the lake with a giant straw bottom-left, cheeks puffed.
+On the magical far horizon, a twinkling park of glowing pixie-dust trees
+and sparkler fountains shines, teasing the next world.
+
+================================================================
+WORLD 42 — PIXIE POP PARK
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+magical twilight-pastel light, soft empty center for gameplay, no text. A
+whimsical park of glowing popping-candy trees that sparkle like tiny
+fireworks along the bottom and side edges, benches made of wafer, floating
+pixie-dust motes. Boba the round bubble-tea pearl mascot catches sparkles
+in a jar bottom-right. Deep on the lush far horizon, a wild jungle of
+wobbling jelly vines glistens, hinting at the adventure ahead.
+
+================================================================
+WORLD 43 — JELLY JUNGLE
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+lush bright light, soft clear center for gameplay, no text. A dense
+jungle of translucent jelly vines, giant gelatin leaves and wobbly jelly
+fruit in ruby and lime along the bottom and sides. Boba the cute
+bubble-tea pearl mascot swings on a jelly vine bottom-left like a tiny
+explorer. Far through the trees on the horizon, a cocoa-brown coastline
+meets a milk sea, teasing the next world.
+
+================================================================
+WORLD 44 — COCOA COAST
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+warm coastal light, pale soft center for gameplay, no text. A cocoa-brown
+coastal cliff walk above a gentle milk-chocolate sea along the bottom,
+chocolate-shell rocks and a tiny lighthouse striped like neapolitan.
+Boba the round bubble-tea pearl mascot flies a small wafer kite
+bottom-right. On the far snowy horizon, sundae slopes rise with whipped
+cream peaks and cherry tops, inviting winter fun ahead.
+
+================================================================
+WORLD 45 — SUNDAE SLOPES
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+bright snowy light, soft open center for gameplay, no text. Ski slopes of
+vanilla ice cream with fudge-ripple trails and whipped-cream moguls along
+the bottom corners, a cherry-topped peak and chocolate-flake ski lift.
+Boba the cute bubble-tea pearl mascot sleds down on a banana-split sled
+bottom-left. Under the sea-blue far horizon, a pink raspberry reef
+glimmers beneath candy waves, teasing the next world.
+
+================================================================
+WORLD 46 — RASPBERRY REEF
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+soft underwater-pastel light, pale uncluttered center for gameplay, no
+text. A gentle underwater reef of raspberry clusters like coral, rock
+candy anemones and gummy fish along the bottom edge, light rays filtering
+down. Boba the round bubble-tea pearl mascot wears a tiny diving mask
+bottom-right, waving. Far above the water on the horizon, the warm brown
+skyline of a cinnamon city rises with sugar-dusted rooftops, hinting at
+what's next.
+
+================================================================
+WORLD 47 — CINNAMON CITY
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+warm spiced golden light, soft clear center for gameplay, no text. A cozy
+city skyline of cinnamon-roll towers with icing-swirl roofs and
+churro-stick lamp posts along the bottom, sugar dust drifting like snow.
+Boba the cute bubble-tea pearl mascot rides a rolling cinnamon roll
+bottom-left. On the pale far horizon, soft almond marzipan wetlands
+stretch in gentle pastel shapes, teasing the next world.
+
+================================================================
+WORLD 48 — MARZIPAN MARSH
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+soft pale light, open uncluttered center for gameplay, no text. A calm
+marsh of smooth almond marzipan islands sculpted into gentle fruit and
+animal shapes along the bottom, powdered-sugar mist between them. Boba
+the round bubble-tea pearl mascot sculpts a tiny marzipan friend
+bottom-right. Far on the icy horizon, a glassy glacier of clear sugar
+glaze gleams blue-white, inviting the frozen world ahead.
+
+================================================================
+WORLD 49 — GLAZE GLACIER
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+cool crystal light, pale soft center for gameplay, no text. A shimmering
+glacier of transparent sugar glaze with frozen fruit pieces inside like
+gems along the bottom corners, icicle rock-candy formations. Boba the
+cute bubble-tea pearl mascot slides across the ice bottom-left, scarf
+flying. High on the far horizon, the sky itself turns to pink and blue
+spun sugar with floating candy clouds, teasing the next world.
+
+================================================================
+WORLD 50 — SUGAR SKIES
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+bright dreamy sky light, soft empty center for gameplay, no text. A world
+high in the sky: spun-sugar clouds in pink and baby blue along the bottom
+edge, floating rock-candy islands and a sugar-glider bird. Boba the round
+bubble-tea pearl mascot floats with a tiny candy-balloon bunch
+bottom-right. Far below on the horizon, a wooden wharf of wafer planks
+juts into a cream sea, hinting at the harbor world ahead.
+
+================================================================
+WORLD 51 — WAFER WHARF
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+soft harbor light, pale clear center for gameplay, no text. A charming
+wharf built from layered wafer planks along the bottom, crates of candy
+cargo, a small wafer sailboat with a fruit-strip sail. Boba the cute
+bubble-tea pearl mascot sits on the pier edge bottom-left, feet dangling
+over cream water. Inland on the far horizon, a country crossing of
+lattice-crust cobbler fields steams warm and golden, teasing the
+next world.
+
+================================================================
+WORLD 52 — COBBLER CROSSING
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+warm homey light, soft open center for gameplay, no text. A countryside
+crossing where lattice pie-crust bridges span bubbling berry-cobbler
+fields along the bottom, steam curling sweetly. Boba the round bubble-tea
+pearl mascot balances on a lattice bridge bottom-right carrying a tiny
+berry. On the elegant far horizon, a layered parfait headland rises in
+glass-clear stripes above the sea, inviting the player onward.
+
+================================================================
+WORLD 53 — PARFAIT POINT
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+clear elegant light, pale soft center for gameplay, no text. A seaside
+headland shaped like a giant layered parfait — visible strata of cream,
+berry compote and granola along the bottom cliffs. Boba the cute
+bubble-tea pearl mascot peers from a cream layer like a balcony
+bottom-left. Far away on the horizon, a soft round mochi mountain range
+glows in pastel pink and green, teasing the next world.
+
+================================================================
+WORLD 54 — MOCHI MOUNTAIN
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+gentle bright light, soft uncluttered center for gameplay, no text. Round
+squishy mountains of pastel mochi — sakura pink, matcha green, mango —
+with dusted-flour snow along the bottom corners. Boba the round
+bubble-tea pearl mascot hugs a giant warm mochi bottom-right, sinking in
+slightly. On the swirling far horizon, a spiral tower of twisted candy
+ribbon corkscrews into the clouds, hinting at what's next.
+
+================================================================
+WORLD 55 — TWIST TOWER
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+bright vertical light, soft empty center for gameplay, no text. The base
+of a magnificent spiral tower of twisted rainbow candy ribbon anchored in
+the bottom corner, spiral stairs of sugar cubes winding up the edge of
+the frame. Boba the cute bubble-tea pearl mascot climbs the first steps
+bottom-left, looking up in awe. Through a cozy cave mouth on the far
+horizon, golden honey-drizzle light spills from a hidden den, teasing
+the next world.
+
+================================================================
+WORLD 56 — DRIZZLE DEN
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+cozy golden light, pale soft center for gameplay, no text. A warm hidden
+den where ribbons of honey and chocolate drizzle rain gently from the
+ceiling edges into syrup pools along the bottom. Boba the round
+bubble-tea pearl mascot holds a tiny umbrella catching drizzle
+bottom-right, laughing. Out through the den opening on the far horizon,
+a tall frothy frappe waterfall crashes in creamy tiers, inviting the
+player onward.
+
+================================================================
+WORLD 57 — FRAPPE FALLS
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+fresh lively light, soft clear center for gameplay, no text. A grand
+waterfall of blended icy frappe pouring in creamy tiers into a whipped
+cream pool along the bottom, giant straws standing like totems, coffee
+and caramel mist. Boba the cute bubble-tea pearl mascot rides an ice cube
+raft bottom-left. On the warm far horizon, a golden basin of stacked
+cookies and biscuits bakes in soft light, teasing the next world.
+
+================================================================
+WORLD 58 — BISCUIT BASIN
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+warm bakery light, pale open center for gameplay, no text. A wide basin
+ringed by golden biscuit ledges and shortbread boulders along the bottom,
+crumbs sparkling like sand, a chocolate-chip cookie sun low at the edge.
+Boba the round bubble-tea pearl mascot nibbles a tiny cookie corner
+bottom-right, guilty-happy face. On the cool far horizon, manicured
+gelato gardens bloom in scoops of pastel color, hinting at what's next.
+
+================================================================
+WORLD 59 — GELATO GARDENS
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+fresh garden light, soft uncluttered center for gameplay, no text. Formal
+gardens where hedges and flower beds are scoops of gelato — pistachio,
+stracciatella, berry — with wafer-fan trellises along the bottom. Boba
+the cute bubble-tea pearl mascot waters a gelato flower with sprinkles
+bottom-left. High on the far horizon, a summit crowned with a burst of
+rainbow sprinkles sparkles against the sky, teasing the next world.
+
+================================================================
+WORLD 60 — SPRINKLE SUMMIT
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+bright celebratory light, pale soft center for gameplay, no text. A
+mountain summit dusted entirely in rainbow sprinkles along the bottom
+corners, sprinkle drifts glittering, a little summit cairn of candy
+pebbles. Boba the round bubble-tea pearl mascot cheers at the top
+bottom-right with arms raised. Far below on the turquoise horizon, a
+chain of golden caramel islands trails across the sea like keys,
+inviting the journey onward.
+
+================================================================
+WORLD 61 — CARAMEL KEYS
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+warm tropical light, soft clear center for gameplay, no text. A chain of
+small golden caramel islands stepping across a turquoise soda sea along
+the bottom, palm trees with chocolate-flake leaves, an old key-shaped
+caramel landmark. Boba the cute bubble-tea pearl mascot hops between
+islands bottom-left. On the cozy far horizon, a berry-covered burrow
+entrance glows snug beneath a strawberry hill, teasing the next world.
+
+================================================================
+WORLD 62 — BERRY BURROW
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+cozy warm light, pale empty center for gameplay, no text. A snug burrow
+village dug into a giant strawberry hill along the bottom, round doors
+framed by blueberries and raspberry lanterns. Boba the round bubble-tea
+pearl mascot peeks out of a berry door bottom-right with a nightcap. Far
+on the horizon, a busy chocolate harbor with cocoa cranes and fudge
+ships waits in golden-brown light, hinting at what's next.
+
+================================================================
+WORLD 63 — CHOCO HARBOR
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+warm harbor light, soft open center for gameplay, no text. A friendly
+harbor of dark and milk chocolate docks along the bottom, fudge cargo
+ships, a crane lifting a giant wrapped chocolate. Boba the cute
+bubble-tea pearl mascot salutes in a tiny captain hat bottom-left. Across
+the fresh green far horizon, sleek mint sailboats bob in a bright
+marina, teasing the next world.
+
+================================================================
+WORLD 64 — MINTY MARINA
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+fresh cool light, pale soft center for gameplay, no text. A crisp marina
+of mint-green water along the bottom with white-chocolate yachts,
+peppermint buoys and after-dinner-mint flags fluttering. Boba the round
+bubble-tea pearl mascot steers a tiny mint boat bottom-right. High on
+the pink far horizon, balloons drift over a bubblegum bluff where round
+gum boulders balance, inviting the player onward.
+
+================================================================
+WORLD 65 — BUBBLEGUM BLUFF
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+bright pink light, soft uncluttered center for gameplay, no text. A high
+bluff of round pink bubblegum boulders along the bottom corners, some
+mid-inflate like balloons tethered by gum strands, petals of gum drifting.
+Boba the cute bubble-tea pearl mascot blows an enormous bubblegum bubble
+bottom-left. On the majestic far horizon, the white towers of a sweet
+citadel rise behind candy banners, teasing the grand world ahead.
+
+================================================================
+WORLD 66 — SWEET CITADEL
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+regal bright light, pale clear center for gameplay, no text. A majestic
+citadel of white chocolate walls and sugar-glass towers with candy-ribbon
+banners along the bottom, a drawbridge of chocolate bark over a syrup
+moat. Boba the round bubble-tea pearl mascot stands guard with a candy
+spear bottom-right, chest puffed proudly. Far beyond the walls on the
+horizon, the end of a giant rainbow touches the land in a pool of
+glittering gold sugar, hinting at what's next.
+
+================================================================
+WORLD 67 — RAINBOW'S END (FINAL WORLD)
+================================================================
+Mobile game background, portrait 9:16, soft candy-pastel cartoon style,
+glorious warm light, soft empty center for gameplay, no text. The
+legendary end of the rainbow: a giant soft rainbow arcs down into a
+sparkling pool of golden sugar and gems made of rock candy along the
+bottom, confetti drifting gently at the edges. Boba the cute bubble-tea
+pearl mascot stands in the golden glow bottom-left, arms wide in wonder.
+On the deep twilight horizon, a faint shimmering candy galaxy of stars
+swirls in the sky — the dream of adventures still to come.
+
+================================================================
+END OF FILE — 67 world background prompts
+================================================================
+
+================================================================
+EXTRA A — WORLDS TRAIL SCREEN (the winding journey map)
+================================================================
+Mobile game background, portrait 9:16, soft dreamy candy-pastel cartoon
+style, bright airy light, smooth rounded shapes, no text, no logos. A
+gentle top-down candy kingdom landscape designed as a backdrop for a
+winding level-map road: pastel pink and cream rolling sugar hills, soft
+mint meadows and tiny lollipop trees ONLY along the left and right edges
+of the frame, with a wide, calm, almost-empty vertical column down the
+middle where the game draws its own road and world islands. Small
+delightful details at the edges: a jelly pond, candy-cane signposts, puffy
+marshmallow clouds drifting near the top corners, faint sugar-dust
+sparkles. Boba, a cute round bubble-tea pearl mascot with big sparkly
+eyes, peeks from behind a hill in the bottom-left corner, very small. Very
+light, low-contrast colors overall so buttons and labels stay readable on
+top. Center column must stay soft, pale and uncluttered.
+
+================================================================
+EXTRA B — SINGLE WORLD LEVEL-GRID SCREEN (generic, fits all worlds)
+================================================================
+Mobile game background, portrait 9:16, soft dreamy candy-pastel cartoon
+style, bright airy light, no text, no logos. A calm, elegant candy-sky
+backdrop for a grid of level buttons: a smooth vertical wash of pale pink
+into baby blue, a few faint puffy cream clouds near the top corners, tiny
+floating candy sparkles and two or three soft translucent bubbles near the
+side edges only. A delicate scalloped frosting border runs along the very
+bottom edge like a shelf of whipped cream, with Boba, a cute round
+bubble-tea pearl mascot with big sparkly eyes, sitting on it tiny in the
+bottom-right corner waving. Everything extremely light and low-contrast —
+the middle 80 percent of the image is nearly plain so colorful level tiles
+placed on top stay perfectly readable. Dreamy, inviting, premium mobile
+puzzle-game feeling.
+
+================================================================
+ADVANCED PROMPTS (v2) — USE WITH THE ATTACHED CHARACTER IMAGE
+================================================================
+Upload assets/boba/chara1.png together with the prompt. These prompts
+explicitly tell the AI that the attached image is the official mascot.
+
+----------------------------------------------------------------
+REUSABLE CHARACTER BLOCK (paste into ANY prompt in this file)
+----------------------------------------------------------------
+CHARACTER REFERENCE: I have attached an image of "Boba", the official
+mascot of my game. Use the attached image as the exact character
+reference — reproduce Boba's shape, face, eye style, blush marks, body
+proportions, outline thickness and colors faithfully. Do NOT redesign,
+restyle or reinterpret the character. Boba must blend into the scene's
+lighting and perspective naturally, drawn in the same illustration style
+as the background.
+
+----------------------------------------------------------------
+ADVANCED A — WORLDS TRAIL SCREEN (winding journey map backdrop)
+----------------------------------------------------------------
+TASK: Create a premium mobile puzzle-game background for a vertically
+scrolling world-map screen. Portrait 9:16, 1080x1920, full-bleed, no
+transparency.
+
+CHARACTER REFERENCE: I have attached an image of "Boba", the official
+mascot of my game. Use the attached image as the exact character
+reference — reproduce Boba's shape, face, sparkly eyes, blush, colors and
+proportions faithfully. Do NOT redesign the character. Place Boba SMALL
+(about 8% of image height) peeking out from behind a sugar hill in the
+bottom-left corner, waving at the viewer, rendered in the same style and
+lighting as the scene.
+
+STYLE: Soft dreamy candy-pastel cartoon illustration, clean rounded
+vector-like shapes with subtle airbrush shading, glossy highlights on
+candy surfaces, gentle bloom. Consistent with a cheerful "Candy Kingdom"
+art bible. Absolutely no photorealism, no harsh outlines, no gritty
+texture.
+
+COLOR SCRIPT: Base wash from blush pink #FFE3F6 at the top into cream
+#FFF7EC and hint-of-mint #E9FBF4 at the bottom. Accent candy tones only
+at the edges: rose pink #FF8FC4, butter yellow #FFD76B, spearmint
+#7BE0C8, sky blue #9BE8F5. Overall brightness high, saturation low-medium
+— this is a BACKDROP, not a hero image.
+
+COMPOSITION (critical): The middle vertical column (central 55% of the
+width, full height) must stay almost EMPTY — only the soft gradient wash
+and faint sugar-dust sparkles — because the game engine draws a winding
+road, island buttons and labels on top of it. All scenery hugs the left
+and right edges and gently frames the column: rolling sugar hills,
+lollipop trees, a small jelly pond, candy-cane signposts, marshmallow
+clouds tucked into the top corners, a frosting ridge along the very
+bottom. Details must get sparser toward the center. Nothing may cross
+the center column above 20% opacity.
+
+LIGHTING: Soft morning light from the upper left, long soft shadows,
+gentle rim light on candy edges, tiny sparkling sugar particles floating
+near the edges.
+
+FORBIDDEN: text, letters, numbers, logos, watermarks, UI elements,
+buttons, roads, paths, trails (the game draws its own), dark colors,
+strong contrast in the center, human characters, brand candies.
+
+----------------------------------------------------------------
+ADVANCED B — LEVEL-GRID SCREEN (level picker backdrop, all worlds)
+----------------------------------------------------------------
+TASK: Create a premium mobile puzzle-game background for a level-select
+screen that shows a 3-column grid of level buttons. Portrait 9:16,
+1080x1920, full-bleed, no transparency.
+
+CHARACTER REFERENCE: I have attached an image of "Boba", the official
+mascot of my game. Use the attached image as the exact character
+reference — reproduce Boba's shape, face, sparkly eyes, blush, colors
+and proportions faithfully. Do NOT redesign the character. Place Boba
+SMALL (about 7% of image height) sitting on the whipped-cream ledge at
+the bottom-right corner, legs dangling, waving happily, drawn in the
+same style and lighting as the scene.
+
+STYLE: Soft dreamy candy-pastel cartoon illustration, rounded shapes,
+airy and elegant, subtle airbrush shading, faint bloom. Premium, calm,
+"expensive casual game" feeling. No photorealism.
+
+COLOR SCRIPT: A smooth vertical sky wash: blush pink #FFE3F6 at top →
+pale peach #FFE9E3 → baby periwinkle #E7ECFF → light aqua #DFF5FF at the
+bottom (these are the game's exact theme colors). Keep everything
+high-brightness and low-contrast.
+
+COMPOSITION (critical): The central 80% of the image must be nearly
+PLAIN — just the gradient wash with a few faint, blurred sparkles —
+because a grid of colorful level tiles and a white header card are
+rendered on top by the game. Decoration allowed ONLY at: (1) top
+corners — two or three faint puffy cream clouds, max 15% opacity against
+the sky; (2) side edges — two soft translucent floating bubbles per
+side; (3) the very bottom 12% — a scalloped whipped-cream frosting ledge
+with tiny candy sprinkles, where Boba sits. Nothing else.
+
+LIGHTING: Bright, even, diffuse daylight; the frosting ledge gets a soft
+warm glow and delicate glossy highlights.
+
+FORBIDDEN: text, letters, numbers, logos, watermarks, UI, buttons,
+tiles, cards, strong shapes or contrast in the central area, dark tones,
+human characters.
+
+----------------------------------------------------------------
+TIP FOR THE 67 GAMEPLAY BACKGROUNDS
+----------------------------------------------------------------
+To upgrade any WORLD prompt above to v2: paste the REUSABLE CHARACTER
+BLOCK right after the first sentence of the prompt, attach chara1.png,
+and add this line at the end:
+"Render at 1080x1920 portrait, full-bleed. The central 60% of the image
+must stay soft, pale and free of detail for gameplay bubbles. FORBIDDEN:
+text, logos, watermarks, UI, dark colors, strong contrast in the center."
