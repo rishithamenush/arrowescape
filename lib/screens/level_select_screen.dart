@@ -126,11 +126,9 @@ class _LevelSelectScreenState extends State<LevelSelectScreen>
   }
 
   // ---------- header ----------
-  /// One frosted command strip: back · title + overall star progress · badge.
+  /// One frosted command strip: back · centred sticker title · star badge.
   Widget _header(GameState state) {
     final total = state.progress.fold<int>(0, (s, v) => s + v);
-    final maxStars = state.progress.length * 3;
-    final frac = maxStars == 0 ? 0.0 : total / maxStars;
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
       child: LiquidGlass(
@@ -161,64 +159,11 @@ class _LevelSelectScreenState extends State<LevelSelectScreen>
                 ),
               ),
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  ShaderMask(
-                    shaderCallback: (rect) => const LinearGradient(
-                      colors: [Color(0xFFFF7AB0), AppColors.accent],
-                    ).createShader(rect),
-                    child: const Text(
-                      'Worlds',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 24,
-                        height: 1,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 7),
-                  // Overall star-collection progress.
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(5),
-                    child: SizedBox(
-                      height: 9,
-                      child: Stack(
-                        children: [
-                          Positioned.fill(
-                            child: ColoredBox(
-                              color: Colors.white.withValues(alpha: 0.6),
-                            ),
-                          ),
-                          FractionallySizedBox(
-                            alignment: Alignment.centerLeft,
-                            widthFactor: frac.clamp(0.0, 1.0),
-                            heightFactor: 1,
-                            child: const DecoratedBox(
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [
-                                    Color(0xFFFFD76B),
-                                    Color(0xFFFFB020),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 8),
+            // Centred sticker-style heading: white outline + candy gradient
+            // fill + soft drop shadow, matching the in-game praise words.
+            const Expanded(child: Center(child: _StickerTitle('Worlds'))),
+            const SizedBox(width: 8),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
@@ -613,6 +558,64 @@ class _StopLabel extends StatelessWidget {
             ),
         ],
       ),
+    );
+  }
+}
+
+/// A bouncy candy "sticker" heading: thick white outline, pink-to-amber
+/// gradient fill and a soft drop shadow — the same look as the in-game
+/// praise words, so the whole app shares one voice.
+class _StickerTitle extends StatelessWidget {
+  const _StickerTitle(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    const style = TextStyle(
+      fontSize: 28,
+      height: 1,
+      fontWeight: FontWeight.w800,
+      letterSpacing: 1,
+    );
+    return Stack(
+      children: [
+        // Thick white outline.
+        Text(
+          text,
+          maxLines: 1,
+          style: style.copyWith(
+            foreground: Paint()
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = 7
+              ..strokeJoin = StrokeJoin.round
+              ..color = Colors.white,
+          ),
+        ),
+        // Candy gradient fill.
+        ShaderMask(
+          shaderCallback: (rect) => const LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFFFF7AB0), AppColors.accent, Color(0xFFFF9A3D)],
+            stops: [0, 0.6, 1],
+          ).createShader(rect),
+          child: Text(
+            text,
+            maxLines: 1,
+            style: style.copyWith(
+              color: Colors.white,
+              shadows: [
+                Shadow(
+                  color: Colors.black.withValues(alpha: 0.18),
+                  offset: const Offset(0, 2),
+                  blurRadius: 3,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
