@@ -110,8 +110,8 @@ class _WorldMapScreenState extends State<WorldMapScreen> {
                         padding: EdgeInsets.fromLTRB(14, 4, 14, bottomMargin),
                         child: LiquidGlass(
                           radius: 28,
-                          blur: 14,
-                          opacity: 0.34,
+                          blur: 10,
+                          opacity: 0.22,
                           child: GridView.builder(
                             controller: _scroll,
                             padding: const EdgeInsets.fromLTRB(
