@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 import '../core/theme.dart';
 import '../game/sections.dart';
@@ -222,16 +223,17 @@ class _LevelSelectScreenState extends State<LevelSelectScreen>
                 valueListenable: _strayed,
                 builder: (_, away, child) => IgnorePointer(
                   ignoring: !away,
-                  child: AnimatedSlide(
-                    offset: away ? Offset.zero : const Offset(0, 0.6),
-                    duration: const Duration(milliseconds: 220),
-                    curve: Curves.easeOutCubic,
-                    child: AnimatedOpacity(
-                      opacity: away ? 1 : 0,
-                      duration: const Duration(milliseconds: 180),
-                      child: child,
-                    ),
-                  ),
+                  // `target` drives the effects both ways, so the button slides
+                  // back down when the player scrolls home again.
+                  child: child!
+                      .animate(target: away ? 1 : 0)
+                      .fadeIn(duration: 220.ms)
+                      .slideY(
+                        begin: 0.7,
+                        end: 0,
+                        duration: 280.ms,
+                        curve: Curves.easeOutBack,
+                      ),
                 ),
                 child: _continueButton(state),
               ),
@@ -251,69 +253,77 @@ class _LevelSelectScreenState extends State<LevelSelectScreen>
     final reached = (state.unlocked ~/ kSectionSize + 1).clamp(1, worlds);
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
-      child: LiquidGlass(
-        radius: 26,
-        blur: 16,
-        opacity: 0.55,
-        padding: const EdgeInsets.fromLTRB(10, 10, 10, 12),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
+          padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
+          child: LiquidGlass(
+            radius: 26,
+            blur: 16,
+            opacity: 0.55,
+            padding: const EdgeInsets.fromLTRB(10, 10, 10, 12),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                _GlassIconButton(
-                  icon: Icons.chevron_left_rounded,
-                  onTap: () => Navigator.of(context).pop(),
-                ),
-                const SizedBox(width: 8),
-                // Centred sticker-style heading: white outline + candy gradient
-                // fill + soft drop shadow, matching the in-game praise words.
-                // FittedBox scales it down gracefully on very narrow screens.
-                const Expanded(
-                  child: Center(
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: _StickerTitle("Let's Pop!"),
+                Row(
+                  children: [
+                    _GlassIconButton(
+                      icon: Icons.chevron_left_rounded,
+                      onTap: () => Navigator.of(context).pop(),
                     ),
-                  ),
+                    const SizedBox(width: 8),
+                    // Centred sticker-style heading: white outline + candy gradient
+                    // fill + soft drop shadow, matching the in-game praise words.
+                    // FittedBox scales it down gracefully on very narrow screens.
+                    const Expanded(
+                      child: Center(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: _StickerTitle("Let's Pop!"),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    _CandyChip(
+                      icon: Icons.star_rounded,
+                      // Just the collected total — "50/3015" reads as
+                      // discouraging; the bar already shows overall progress.
+                      label: '$total',
+                      colors: const [AppColors.amberLight, AppColors.amber],
+                      shadow: AppColors.amberShadow,
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 8),
-                _CandyChip(
-                  icon: Icons.star_rounded,
-                  // Just the collected total — "50/3015" reads as
-                  // discouraging; the bar already shows overall progress.
-                  label: '$total',
-                  colors: const [AppColors.amberLight, AppColors.amber],
-                  shadow: AppColors.amberShadow,
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _ProgressBar(
+                        value: reached / worlds,
+                        colors: const [AppColors.pinkLight, AppColors.pink],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'WORLD $reached / $worlds',
+                      style: const TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.8,
+                        color: AppColors.body,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Expanded(
-                  child: _ProgressBar(
-                    value: reached / worlds,
-                    colors: const [AppColors.pinkLight, AppColors.pink],
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'WORLD $reached / $worlds',
-                  style: const TextStyle(
-                    fontSize: 9,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.8,
-                    color: AppColors.body,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
+          ),
+        )
+        .animate()
+        .fadeIn(duration: 350.ms)
+        .slideY(
+          begin: -0.4,
+          end: 0,
+          duration: 420.ms,
+          curve: Curves.easeOutCubic,
+        );
   }
 
   /// Jumps the map back to the world the player is on. On a climb this long
@@ -435,9 +445,7 @@ class _LevelSelectScreenState extends State<LevelSelectScreen>
             left: p.dx - 46,
             top: p.dy - _node / 2 - 28,
             width: 92,
-            child: IgnorePointer(
-              child: Center(child: _BouncingPin(loop: _loop)),
-            ),
+            child: IgnorePointer(child: const Center(child: _BouncingPin())),
           ),
         );
       }
@@ -457,21 +465,34 @@ class _LevelSelectScreenState extends State<LevelSelectScreen>
           width: cardW,
           child: Align(
             alignment: onLeft ? Alignment.centerLeft : Alignment.centerRight,
-            child: _WorldCard(
-              section: s,
-              unlocked: unlocked,
-              current: isCurrent,
-              completed: completed,
-              stars: stars,
-              maxStars: maxStars,
-              onTap: unlocked
-                  ? () => Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => WorldMapScreen(section: s),
-                      ),
+            child:
+                _WorldCard(
+                      section: s,
+                      unlocked: unlocked,
+                      current: isCurrent,
+                      completed: completed,
+                      stars: stars,
+                      maxStars: maxStars,
+                      onTap: unlocked
+                          ? () => Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => WorldMapScreen(section: s),
+                              ),
+                            )
+                          : null,
                     )
-                  : null,
-            ),
+                    // Cards drift in from behind their island. Staggering on a
+                    // short cycle keeps nearby cards cascading without giving
+                    // the far end of the climb a several-second delay.
+                    .animate()
+                    .fadeIn(duration: 320.ms, delay: (i % 6 * 55).ms)
+                    .slideX(
+                      begin: onLeft ? -0.18 : 0.18,
+                      end: 0,
+                      duration: 380.ms,
+                      delay: (i % 6 * 55).ms,
+                      curve: Curves.easeOutCubic,
+                    ),
           ),
         ),
       );
@@ -697,56 +718,43 @@ class _WorldCardState extends State<_WorldCard> {
     final s = widget.section;
     final done = widget.completed;
 
-    return GestureDetector(
-      onTapDown: widget.onTap != null
-          ? (_) => setState(() => _down = true)
-          : null,
-      onTapUp: widget.onTap != null
-          ? (_) => setState(() => _down = false)
-          : null,
-      onTapCancel: () => setState(() => _down = false),
-      onTap: widget.onTap,
-      child: AnimatedScale(
-        scale: _down ? 0.94 : 1,
-        duration: const Duration(milliseconds: 90),
-        curve: Curves.easeOut,
-        // Glass look without a BackdropFilter — there can be ~70 cards in the
-        // tree, so a translucent fill + sheen keeps it cheap while still
-        // reading as glass.
-        child: LiquidGlass(
-          radius: 16,
-          blur: 0,
-          opacity: widget.unlocked ? 0.82 : 0.62,
-          padding: const EdgeInsets.fromLTRB(11, 7, 11, 8),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+    // Glass look without a BackdropFilter — there can be ~70 cards in the
+    // tree, so a translucent fill + sheen keeps it cheap while still reading
+    // as glass.
+    Widget card = LiquidGlass(
+      radius: 16,
+      blur: 0,
+      opacity: widget.unlocked ? 0.82 : 0.62,
+      padding: const EdgeInsets.fromLTRB(11, 7, 11, 8),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
             children: [
-              Row(
-                children: [
-                  if (!widget.unlocked) ...[
-                    Icon(
-                      Icons.lock_rounded,
-                      size: 13,
-                      color: AppColors.muted.withValues(alpha: 0.9),
-                    ),
-                    const SizedBox(width: 4),
-                  ],
-                  Expanded(
-                    child: Text(
-                      widget.unlocked ? s.name : 'Locked',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 13.5,
-                        height: 1.1,
-                        fontWeight: FontWeight.w800,
-                        color: widget.unlocked ? s.shadow : AppColors.muted,
-                      ),
-                    ),
+              if (!widget.unlocked) ...[
+                Icon(
+                  Icons.lock_rounded,
+                  size: 13,
+                  color: AppColors.muted.withValues(alpha: 0.9),
+                ),
+                const SizedBox(width: 4),
+              ],
+              Expanded(
+                child: Text(
+                  widget.unlocked ? s.name : 'Locked',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 13.5,
+                    height: 1.1,
+                    fontWeight: FontWeight.w800,
+                    color: widget.unlocked ? s.shadow : AppColors.muted,
                   ),
-                  if (widget.current)
-                    Container(
+                ),
+              ),
+              if (widget.current)
+                Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 6,
                         vertical: 1,
@@ -764,56 +772,88 @@ class _WorldCardState extends State<_WorldCard> {
                           color: Colors.white,
                         ),
                       ),
+                    )
+                    .animate(onPlay: (c) => c.repeat(reverse: true))
+                    .scaleXY(
+                      end: 1.09,
+                      duration: 780.ms,
+                      curve: Curves.easeInOut,
                     ),
-                ],
-              ),
-              const SizedBox(height: 5),
-              if (widget.unlocked) ...[
-                _ProgressBar(
-                  value: s.count == 0 ? 0 : done / s.count,
-                  colors: s.gradient,
-                  height: 5,
-                ),
-                const SizedBox(height: 5),
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.star_rounded,
-                      size: 13,
-                      color: AppColors.amber,
-                    ),
-                    const SizedBox(width: 3),
-                    Text(
-                      '${widget.stars}/${widget.maxStars}',
-                      style: const TextStyle(
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.body,
-                      ),
-                    ),
-                    const Spacer(),
-                    Text(
-                      '$done/${s.count}',
-                      style: TextStyle(
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.muted.withValues(alpha: 0.9),
-                      ),
-                    ),
-                  ],
-                ),
-              ] else
-                Text(
-                  'Opens at level ${s.start + 1}',
-                  style: const TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.muted,
-                  ),
-                ),
             ],
           ),
-        ),
+          const SizedBox(height: 5),
+          if (widget.unlocked) ...[
+            _ProgressBar(
+              value: s.count == 0 ? 0 : done / s.count,
+              colors: s.gradient,
+              height: 5,
+            ),
+            const SizedBox(height: 5),
+            Row(
+              children: [
+                const Icon(
+                  Icons.star_rounded,
+                  size: 13,
+                  color: AppColors.amber,
+                ),
+                const SizedBox(width: 3),
+                Text(
+                  '${widget.stars}/${widget.maxStars}',
+                  style: const TextStyle(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.body,
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  '$done/${s.count}',
+                  style: TextStyle(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.muted.withValues(alpha: 0.9),
+                  ),
+                ),
+              ],
+            ),
+          ] else
+            Text(
+              'Opens at level ${s.start + 1}',
+              style: const TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                color: AppColors.muted,
+              ),
+            ),
+        ],
+      ),
+    );
+
+    // A slow light sweep marks the world the player is on.
+    if (widget.current) {
+      card = card
+          .animate(onPlay: (c) => c.repeat(period: 2800.ms))
+          .shimmer(
+            delay: 700.ms,
+            duration: 1300.ms,
+            color: Colors.white.withValues(alpha: 0.6),
+          );
+    }
+
+    return GestureDetector(
+      onTapDown: widget.onTap != null
+          ? (_) => setState(() => _down = true)
+          : null,
+      onTapUp: widget.onTap != null
+          ? (_) => setState(() => _down = false)
+          : null,
+      onTapCancel: () => setState(() => _down = false),
+      onTap: widget.onTap,
+      child: AnimatedScale(
+        scale: _down ? 0.94 : 1,
+        duration: const Duration(milliseconds: 90),
+        curve: Curves.easeOut,
+        child: card,
       ),
     );
   }
@@ -1029,23 +1069,22 @@ class _PulsingHalo extends StatelessWidget {
   }
 }
 
-/// The "PLAY" pin bobbing gently over the current world. Self-animating so
-/// only the pin repaints each frame.
+/// The "PLAY" pin over the current world: bobbing, with a light sweep across
+/// it. Only ever one on screen, so it can own its animation.
 class _BouncingPin extends StatelessWidget {
-  const _BouncingPin({required this.loop});
-
-  final Animation<double> loop;
+  const _BouncingPin();
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: loop,
-      builder: (_, child) {
-        final pulse = 0.5 + 0.5 * math.sin(loop.value * 2 * math.pi);
-        return Transform.translate(offset: Offset(0, -3 * pulse), child: child);
-      },
-      child: const _PlayPin(),
-    );
+    return const _PlayPin()
+        .animate(onPlay: (c) => c.repeat(reverse: true))
+        .moveY(begin: 0, end: -5, duration: 900.ms, curve: Curves.easeInOut)
+        .animate(onPlay: (c) => c.repeat(period: 2600.ms))
+        .shimmer(
+          delay: 600.ms,
+          duration: 1100.ms,
+          color: Colors.white.withValues(alpha: 0.75),
+        );
   }
 }
 
