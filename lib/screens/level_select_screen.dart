@@ -60,6 +60,14 @@ class _LevelSelectScreenState extends State<LevelSelectScreen>
   List<_IsoStep> _steps = const [];
   double _mapHeight = 0;
 
+  /// Whether the player has scrolled away from their own world — drives the
+  /// floating "Continue" button, so it only appears when it is useful.
+  final ValueNotifier<bool> _strayed = ValueNotifier(false);
+
+  /// Index of the world the player is on.
+  int _currentWorld(GameState state) =>
+      (state.unlocked ~/ kSectionSize).clamp(0, _sections.length - 1);
+
   /// Walks the whole climb once: a landing for every world, and between them a
   /// flight of cubes stepping down one iso tile at a time. Flights head back
   /// towards the middle of the screen and are shortened if they would run off
@@ -107,21 +115,31 @@ class _LevelSelectScreenState extends State<LevelSelectScreen>
   @override
   void initState() {
     super.initState();
+    _scroll.addListener(_watchScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || !_scroll.hasClients || _landings.isEmpty) return;
       final state = GameScope.read(context);
-      final current = (state.unlocked ~/ kSectionSize).clamp(
-        0,
-        _landings.length - 1,
-      );
+      final current = _currentWorld(state);
       final target =
           _landings[current].dy - _scroll.position.viewportDimension / 2;
       _scroll.jumpTo(target.clamp(0, _scroll.position.maxScrollExtent));
     });
   }
 
+  /// Flags when the player's own world has scrolled out of view.
+  void _watchScroll() {
+    if (!mounted || !_scroll.hasClients || _landings.isEmpty) return;
+    final current = _currentWorld(GameScope.read(context));
+    final viewport = _scroll.position.viewportDimension;
+    final middle = _scroll.offset + viewport / 2;
+    final away = (_landings[current].dy - middle).abs() > viewport * 0.55;
+    if (away != _strayed.value) _strayed.value = away;
+  }
+
   @override
   void dispose() {
+    _scroll.removeListener(_watchScroll);
+    _strayed.dispose();
     _loop.dispose();
     _scroll.dispose();
     super.dispose();
@@ -193,92 +211,160 @@ class _LevelSelectScreenState extends State<LevelSelectScreen>
               ],
             ),
           ),
+          // Floating jump-back-to-your-world button, shown only once the
+          // player has scrolled away from it.
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 22,
+            child: Center(
+              child: ValueListenableBuilder<bool>(
+                valueListenable: _strayed,
+                builder: (_, away, child) => IgnorePointer(
+                  ignoring: !away,
+                  child: AnimatedSlide(
+                    offset: away ? Offset.zero : const Offset(0, 0.6),
+                    duration: const Duration(milliseconds: 220),
+                    curve: Curves.easeOutCubic,
+                    child: AnimatedOpacity(
+                      opacity: away ? 1 : 0,
+                      duration: const Duration(milliseconds: 180),
+                      child: child,
+                    ),
+                  ),
+                ),
+                child: _continueButton(state),
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 
   // ---------- header ----------
-  /// One frosted command strip: back · centred sticker title · star badge.
+  /// One frosted command strip: back · sticker title · star badge, over a slim
+  /// bar showing how far through the whole climb the player is.
   Widget _header(GameState state) {
     final total = state.progress.fold<int>(0, (s, v) => s + v);
+    final worlds = _sections.length;
+    final reached = (state.unlocked ~/ kSectionSize + 1).clamp(1, worlds);
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
       child: LiquidGlass(
         radius: 26,
         blur: 16,
         opacity: 0.55,
-        padding: const EdgeInsets.all(10),
-        child: Row(
+        padding: const EdgeInsets.fromLTRB(10, 10, 10, 12),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            GestureDetector(
-              onTap: () => Navigator.of(context).pop(),
-              behavior: HitTestBehavior.opaque,
-              child: Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white.withValues(alpha: 0.65),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.8),
-                    width: 1.2,
-                  ),
+            Row(
+              children: [
+                _GlassIconButton(
+                  icon: Icons.chevron_left_rounded,
+                  onTap: () => Navigator.of(context).pop(),
                 ),
-                child: const Icon(
-                  Icons.chevron_left_rounded,
-                  color: AppColors.accent,
-                  size: 28,
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            // Centred sticker-style heading: white outline + candy gradient
-            // fill + soft drop shadow, matching the in-game praise words.
-            // FittedBox scales it down gracefully on very narrow screens.
-            const Expanded(
-              child: Center(
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: _StickerTitle("Let's Pop!"),
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Color(0xFFFFD76B), Color(0xFFFFB020)],
-                ),
-                borderRadius: BorderRadius.circular(40),
-                border: Border.all(color: Colors.white, width: 1.6),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFFD77A1E).withValues(alpha: 0.45),
-                    blurRadius: 8,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.star_rounded, size: 18, color: Colors.white),
-                  const SizedBox(width: 4),
-                  // Just the collected total — "50/3015" reads as
-                  // discouraging; the bar already shows overall progress.
-                  Text(
-                    '$total',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white,
+                const SizedBox(width: 8),
+                // Centred sticker-style heading: white outline + candy gradient
+                // fill + soft drop shadow, matching the in-game praise words.
+                // FittedBox scales it down gracefully on very narrow screens.
+                const Expanded(
+                  child: Center(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: _StickerTitle("Let's Pop!"),
                     ),
                   ),
-                ],
+                ),
+                const SizedBox(width: 8),
+                _CandyChip(
+                  icon: Icons.star_rounded,
+                  // Just the collected total — "50/3015" reads as
+                  // discouraging; the bar already shows overall progress.
+                  label: '$total',
+                  colors: const [AppColors.amberLight, AppColors.amber],
+                  shadow: AppColors.amberShadow,
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  child: _ProgressBar(
+                    value: reached / worlds,
+                    colors: const [AppColors.pinkLight, AppColors.pink],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'WORLD $reached / $worlds',
+                  style: const TextStyle(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.8,
+                    color: AppColors.body,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Jumps the map back to the world the player is on. On a climb this long
+  /// it is easy to scroll away and lose the thread.
+  Widget _continueButton(GameState state) {
+    final i = _currentWorld(state);
+    final s = _sections[i];
+    return GestureDetector(
+      onTap: () {
+        if (!_scroll.hasClients || i >= _landings.length) return;
+        final target = _landings[i].dy - _scroll.position.viewportDimension / 2;
+        _scroll.animateTo(
+          target.clamp(0.0, _scroll.position.maxScrollExtent),
+          duration: const Duration(milliseconds: 450),
+          curve: Curves.easeOutCubic,
+        );
+      },
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(14, 10, 18, 12),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [s.gradient.first, s.gradient.last],
+          ),
+          borderRadius: BorderRadius.circular(40),
+          border: Border.all(color: Colors.white, width: 2),
+          boxShadow: [
+            BoxShadow(
+              color: s.shadow.withValues(alpha: 0.5),
+              blurRadius: 14,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.my_location_rounded,
+              size: 18,
+              color: Colors.white,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Continue · ${s.name}',
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
+                color: Colors.white,
               ),
             ),
           ],
@@ -356,26 +442,35 @@ class _LevelSelectScreenState extends State<LevelSelectScreen>
         );
       }
 
-      // Name + stars label to the OPEN side of the island (right of left-side
-      // stops, left of right-side stops) so it never crowds the road / next
+      // World card on the OPEN side of the island (right of left-side stops,
+      // left of right-side stops) so it never crowds the stairs or the next
       // node. Vertically centred on the island.
-      const labelW = 140.0;
+      const cardW = 152.0;
       final onLeft = p.dx < centerX - 1;
-      final labelLeft = onLeft
+      final cardLeft = onLeft
           ? p.dx + _node / 2 - 2
-          : p.dx - _node / 2 + 2 - labelW;
+          : p.dx - _node / 2 + 2 - cardW;
       widgets.add(
         Positioned(
-          left: labelLeft,
-          top: p.dy - 24,
-          width: labelW,
+          left: cardLeft,
+          top: p.dy - 30,
+          width: cardW,
           child: Align(
             alignment: onLeft ? Alignment.centerLeft : Alignment.centerRight,
-            child: _StopLabel(
+            child: _WorldCard(
               section: s,
               unlocked: unlocked,
+              current: isCurrent,
+              completed: completed,
               stars: stars,
               maxStars: maxStars,
+              onTap: unlocked
+                  ? () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => WorldMapScreen(section: s),
+                      ),
+                    )
+                  : null,
             ),
           ),
         ),
@@ -568,75 +663,272 @@ class _IslandStopState extends State<_IslandStop> {
   }
 }
 
-/// Readable white pill under each island: world name + star count (or "Locked").
-class _StopLabel extends StatelessWidget {
-  const _StopLabel({
+/// The card beside each island: world name, how far through it the player is,
+/// and the stars collected. Locked worlds keep their name and theme hidden and
+/// show what it takes to open them instead.
+class _WorldCard extends StatefulWidget {
+  const _WorldCard({
     required this.section,
     required this.unlocked,
+    required this.current,
+    required this.completed,
     required this.stars,
     required this.maxStars,
+    required this.onTap,
   });
 
   final GameSection section;
   final bool unlocked;
+  final bool current;
+  final int completed;
   final int stars;
   final int maxStars;
+  final VoidCallback? onTap;
+
+  @override
+  State<_WorldCard> createState() => _WorldCardState();
+}
+
+class _WorldCardState extends State<_WorldCard> {
+  bool _down = false;
 
   @override
   Widget build(BuildContext context) {
-    final s = section;
-    // Glass look without a BackdropFilter — there can be ~70 labels on screen,
-    // so a translucent fill + sheen keeps it cheap while still reading as glass.
-    return LiquidGlass(
-      radius: 14,
-      blur: 0,
-      opacity: 0.72,
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Locked worlds keep their name hidden so the theme stays a surprise.
-          Text(
-            unlocked ? s.name : 'Locked',
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 13,
-              height: 1.1,
-              fontWeight: FontWeight.w800,
-              color: unlocked ? s.shadow : AppColors.muted,
-            ),
-          ),
-          const SizedBox(height: 1),
-          if (unlocked)
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  '★',
-                  style: TextStyle(fontSize: 12, color: Color(0xFFFFB020)),
+    final s = widget.section;
+    final done = widget.completed;
+
+    return GestureDetector(
+      onTapDown: widget.onTap != null
+          ? (_) => setState(() => _down = true)
+          : null,
+      onTapUp: widget.onTap != null
+          ? (_) => setState(() => _down = false)
+          : null,
+      onTapCancel: () => setState(() => _down = false),
+      onTap: widget.onTap,
+      child: AnimatedScale(
+        scale: _down ? 0.94 : 1,
+        duration: const Duration(milliseconds: 90),
+        curve: Curves.easeOut,
+        // Glass look without a BackdropFilter — there can be ~70 cards in the
+        // tree, so a translucent fill + sheen keeps it cheap while still
+        // reading as glass.
+        child: LiquidGlass(
+          radius: 16,
+          blur: 0,
+          opacity: widget.unlocked ? 0.82 : 0.62,
+          padding: const EdgeInsets.fromLTRB(11, 7, 11, 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  if (!widget.unlocked) ...[
+                    Icon(
+                      Icons.lock_rounded,
+                      size: 13,
+                      color: AppColors.muted.withValues(alpha: 0.9),
+                    ),
+                    const SizedBox(width: 4),
+                  ],
+                  Expanded(
+                    child: Text(
+                      widget.unlocked ? s.name : 'Locked',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 13.5,
+                        height: 1.1,
+                        fontWeight: FontWeight.w800,
+                        color: widget.unlocked ? s.shadow : AppColors.muted,
+                      ),
+                    ),
+                  ),
+                  if (widget.current)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 1,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.accent,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: const Text(
+                        'NOW',
+                        style: TextStyle(
+                          fontSize: 8,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.6,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 5),
+              if (widget.unlocked) ...[
+                _ProgressBar(
+                  value: s.count == 0 ? 0 : done / s.count,
+                  colors: s.gradient,
+                  height: 5,
                 ),
-                const SizedBox(width: 3),
+                const SizedBox(height: 5),
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.star_rounded,
+                      size: 13,
+                      color: AppColors.amber,
+                    ),
+                    const SizedBox(width: 3),
+                    Text(
+                      '${widget.stars}/${widget.maxStars}',
+                      style: const TextStyle(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.body,
+                      ),
+                    ),
+                    const Spacer(),
+                    Text(
+                      '$done/${s.count}',
+                      style: TextStyle(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.muted.withValues(alpha: 0.9),
+                      ),
+                    ),
+                  ],
+                ),
+              ] else
                 Text(
-                  '$stars/$maxStars',
+                  'Opens at level ${s.start + 1}',
                   style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.body,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.muted,
                   ),
                 ),
-              ],
-            )
-          else
-            Text(
-              'Unlock at level ${s.start + 1}',
-              style: const TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w600,
-                color: AppColors.muted,
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A slim rounded progress bar with a candy gradient fill.
+class _ProgressBar extends StatelessWidget {
+  const _ProgressBar({
+    required this.value,
+    required this.colors,
+    this.height = 6,
+  });
+
+  final double value;
+  final List<Color> colors;
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(height),
+      child: Stack(
+        children: [
+          Container(height: height, color: Colors.white.withValues(alpha: 0.6)),
+          FractionallySizedBox(
+            widthFactor: value.clamp(0.0, 1.0),
+            child: Container(
+              height: height,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(colors: colors),
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The round frosted button used for the back arrow.
+class _GlassIconButton extends StatelessWidget {
+  const _GlassIconButton({required this.icon, required this.onTap});
+
+  final IconData icon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.white.withValues(alpha: 0.65),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.8),
+            width: 1.2,
+          ),
+        ),
+        child: Icon(icon, color: AppColors.accent, size: 28),
+      ),
+    );
+  }
+}
+
+/// A glossy candy pill for a small counter, like the star total.
+class _CandyChip extends StatelessWidget {
+  const _CandyChip({
+    required this.icon,
+    required this.label,
+    required this.colors,
+    required this.shadow,
+  });
+
+  final IconData icon;
+  final String label;
+  final List<Color> colors;
+  final Color shadow;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: colors,
+        ),
+        borderRadius: BorderRadius.circular(40),
+        border: Border.all(color: Colors.white, width: 1.6),
+        boxShadow: [
+          BoxShadow(
+            color: shadow.withValues(alpha: 0.45),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 18, color: Colors.white),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w800,
+              color: Colors.white,
+            ),
+          ),
         ],
       ),
     );
