@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart';
 
 import '../core/theme.dart';
@@ -8,10 +9,11 @@ import '../state/game_state.dart';
 import '../widgets/liquid_glass.dart';
 import 'world_map_screen.dart';
 
-/// The "Worlds" overview, presented as a single winding candy **journey trail**:
-/// each world is a glossy island stop along a flowing path, zig-zagging down the
-/// screen. Tapping a stop opens that world's level map. This mirrors the in-game
-/// road map so the whole app reads as one continuous adventure.
+/// The "Worlds" overview, presented as a candy **staircase**: each world is a
+/// glossy island standing on its own landing, and between landings the player
+/// climbs a flight of chunky candy steps dotted with footprints. The flights
+/// switch back left/right so the whole climb zig-zags down the screen. Tapping
+/// a stop opens that world's level map.
 class LevelSelectScreen extends StatefulWidget {
   const LevelSelectScreen({super.key});
 
@@ -24,16 +26,16 @@ class _LevelSelectScreenState extends State<LevelSelectScreen>
   final ScrollController _scroll = ScrollController();
   late final List<GameSection> _sections = buildSections();
 
-  // Continuous loop for the flowing road dots + current-stop pulse.
+  // Continuous loop for the shimmer climbing the steps + current-stop pulse.
   late final AnimationController _loop = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 2600),
   )..repeat();
 
-  // Trail geometry.
-  static const double _spacing = 158; // vertical gap between stops
+  // Staircase geometry.
+  static const double _spacing = 190; // vertical gap between landings
   static const double _topPad = 86;
-  static const double _botPad = 96;
+  static const double _botPad = 110;
   static const double _node = 92; // island diameter
 
   @override
@@ -82,20 +84,23 @@ class _LevelSelectScreenState extends State<LevelSelectScreen>
                     builder: (context, constraints) {
                       final width = constraints.maxWidth;
                       final n = _sections.length;
-                      final amp = (width / 2 - _node / 2 - 30).clamp(0.0, 96.0);
+                      final amp = (width / 2 - _node / 2 - 30).clamp(0.0, 92.0);
                       final centerX = width / 2;
+                      // Landings alternate strictly left/right, so every flight
+                      // of steps between them is an even diagonal — a switchback
+                      // staircase rather than a wobbly road.
                       final points = <Offset>[
                         for (var i = 0; i < n; i++)
                           Offset(
-                            centerX + amp * math.sin(i * 0.9),
+                            centerX + (i.isEven ? -amp : amp),
                             _topPad + i * _spacing,
                           ),
                       ];
                       final mapHeight = _topPad + (n - 1) * _spacing + _botPad;
 
-                      // Only the trail painter and the small pulse widgets listen
-                      // to the loop — the ~70 island stops and labels are built
-                      // once per state change, not once per animation frame.
+                      // Only the staircase painter and the small pulse widgets
+                      // listen to the loop — the ~70 island stops and labels are
+                      // built once per state change, not once per frame.
                       return SingleChildScrollView(
                         controller: _scroll,
                         physics: const BouncingScrollPhysics(),
@@ -106,7 +111,18 @@ class _LevelSelectScreenState extends State<LevelSelectScreen>
                             children: [
                               Positioned.fill(
                                 child: CustomPaint(
-                                  painter: _TrailPainter(points, _loop),
+                                  painter: _StairPainter(
+                                    points: points,
+                                    unlocked: [
+                                      for (final s in _sections)
+                                        state.isUnlocked(s.start),
+                                    ],
+                                    tints: [
+                                      for (final s in _sections)
+                                        s.gradient.last,
+                                    ],
+                                    animation: _loop,
+                                  ),
                                 ),
                               ),
                               ..._stops(state, points),
@@ -756,91 +772,234 @@ class _PinTailPainter extends CustomPainter {
   bool shouldRepaint(_PinTailPainter oldDelegate) => false;
 }
 
-/// The flowing candy road that threads through every world stop. Repaints via
-/// the [animation] listenable, so the surrounding widget tree stays static.
-class _TrailPainter extends CustomPainter {
-  _TrailPainter(this.points, this.animation) : super(repaint: animation);
+/// The candy staircase that climbs between world stops: a landing under every
+/// island and a flight of chunky 3-D steps in between, each stamped with a
+/// little footprint once that world has been reached. A soft shine travels down
+/// the flight so the climb feels alive. Repaints via the [animation] listenable,
+/// so the surrounding widget tree stays static.
+class _StairPainter extends CustomPainter {
+  _StairPainter({
+    required this.points,
+    required this.unlocked,
+    required this.tints,
+    required this.animation,
+  }) : super(repaint: animation);
+
+  /// Landing centre of each world stop.
   final List<Offset> points;
+
+  /// Whether each world has been reached — walked steps are candy-coloured,
+  /// the rest stay frosted.
+  final List<bool> unlocked;
+
+  /// World colour used to tint that stretch of the staircase.
+  final List<Color> tints;
   final Animation<double> animation;
+
+  /// Steps in one flight, and where along the flight they sit. The range stops
+  /// short of both landings so the treads meet the platforms cleanly.
+  static const List<double> _steps = [0.30, 0.44, 0.58, 0.72];
+  static const double _treadW = 66;
+  static const double _treadH = 18;
+  static const double _riser = 10;
+
+  // Locked steps are frosted candy: a white lip fading to lilac, over a
+  // deeper lilac riser so the stair edge still reads on a pale background.
+  static const Color _frostTop = Color(0xF2FFFFFF);
+  static const Color _frostBottom = Color(0xE6E6D9F0);
+  static const Color _frostRiser = Color(0xD9C7B3DC);
+  static const Color _dropShadow = Color(0x38A8628C);
 
   @override
   void paint(Canvas canvas, Size size) {
     if (points.length < 2) return;
     final t = animation.value;
+    final total = (points.length - 1) * _steps.length;
 
-    // Smooth path through the stops.
-    final path = Path()..moveTo(points.first.dx, points.first.dy);
-    for (var i = 0; i < points.length - 1; i++) {
-      final p0 = points[i];
-      final p1 = points[i + 1];
-      final mid = Offset((p0.dx + p1.dx) / 2, (p0.dy + p1.dy) / 2);
-      path.quadraticBezierTo(p0.dx, p0.dy, mid.dx, mid.dy);
+    // Faint guide ribbon so the flights read as one continuous climb.
+    final guide = Path()..moveTo(points.first.dx, points.first.dy);
+    for (var i = 1; i < points.length; i++) {
+      guide.lineTo(points[i].dx, points[i].dy);
     }
-    path.lineTo(points.last.dx, points.last.dy);
-
-    // Soft blurred under-shadow so the road floats over the artwork.
     canvas.drawPath(
-      path,
+      guide,
       Paint()
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 26
+        ..strokeWidth = 30
         ..strokeCap = StrokeCap.round
         ..strokeJoin = StrokeJoin.round
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6)
-        ..color = const Color(0x26C05A8A),
-    );
-    // Bright white casing.
-    canvas.drawPath(
-      path,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 20
-        ..strokeCap = StrokeCap.round
-        ..strokeJoin = StrokeJoin.round
-        ..color = Colors.white.withValues(alpha: 0.85),
-    );
-    // Inner candy ribbon: a soft rainbow gradient flowing down the trail.
-    canvas.drawPath(
-      path,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 10
-        ..strokeCap = StrokeCap.round
-        ..strokeJoin = StrokeJoin.round
-        ..shader = const LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          tileMode: TileMode.mirror,
-          colors: [
-            Color(0xB3FFB3D2),
-            Color(0xB3FFD9A8),
-            Color(0xB3B9F0DC),
-            Color(0xB3BFD9FF),
-            Color(0xB3FFB3D2),
-          ],
-        ).createShader(path.getBounds()),
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10)
+        ..color = Colors.white.withValues(alpha: 0.30),
     );
 
-    // Flowing glow-dots travelling down the road.
-    final glow = Paint()
-      ..color = Colors.white.withValues(alpha: 0.5)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3);
-    final core = Paint()..color = Colors.white;
-    for (final metric in path.computeMetrics()) {
-      var d = (t * 30) % 30;
-      while (d < metric.length) {
-        final tan = metric.getTangentForOffset(d);
-        if (tan != null) {
-          canvas.drawCircle(tan.position, 4.4, glow);
-          canvas.drawCircle(tan.position, 2.6, core);
-        }
-        d += 30;
+    // Landings first, then the treads on top — painting strictly top-to-bottom
+    // lets each tread hide the riser of the step above it.
+    for (var i = 0; i < points.length; i++) {
+      _landing(canvas, points[i], tints[i], unlocked[i]);
+    }
+
+    var step = 0;
+    for (var i = 0; i < points.length - 1; i++) {
+      final walked = unlocked[i + 1];
+      for (final f in _steps) {
+        final c = Offset.lerp(points[i], points[i + 1], f)!;
+        final tint = Color.lerp(tints[i], tints[i + 1], f)!;
+        // A single highlight sweeping down the whole staircase.
+        final phase = (t - step / total) % 1.0;
+        final shine = walked && phase < 0.09 ? 1 - phase / 0.09 : 0.0;
+        _tread(canvas, c, tint, walked, shine, step.isEven);
+        step++;
       }
     }
   }
 
+  /// Wide platform the world island stands on — the landing at the top of each
+  /// flight. Tinted lighter than the steps so the island still leads the eye.
+  void _landing(Canvas canvas, Offset c, Color tint, bool walked) {
+    final pastel = Color.lerp(tint, Colors.white, 0.45)!;
+    final top = RRect.fromRectAndRadius(
+      Rect.fromCenter(center: c.translate(0, 40), width: 106, height: 26),
+      const Radius.circular(14),
+    );
+    final riser = RRect.fromRectAndRadius(
+      Rect.fromCenter(center: c.translate(0, 47), width: 98, height: 26),
+      const Radius.circular(14),
+    );
+    canvas.drawRRect(
+      top.shift(const Offset(0, 14)),
+      Paint()
+        ..color = _dropShadow
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 7),
+    );
+    canvas.drawRRect(
+      riser,
+      Paint()
+        ..color = walked
+            ? Color.lerp(pastel, Colors.black, 0.22)!.withValues(alpha: 0.85)
+            : _frostRiser,
+    );
+    canvas.drawRRect(
+      top,
+      Paint()..shader = _topShader(top.outerRect, pastel, walked),
+    );
+    canvas.drawRRect(
+      top,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2.4
+        ..color = Colors.white.withValues(alpha: walked ? 0.95 : 0.75),
+    );
+  }
+
+  /// One candy step: soft cast shadow, darker riser, glossy top face, white
+  /// rim, travelling shine, and a footprint once it has been walked.
+  void _tread(
+    Canvas canvas,
+    Offset c,
+    Color tint,
+    bool walked,
+    double shine,
+    bool leftFoot,
+  ) {
+    final top = RRect.fromRectAndRadius(
+      Rect.fromCenter(center: c, width: _treadW, height: _treadH),
+      const Radius.circular(9),
+    );
+    final riser = RRect.fromRectAndRadius(
+      Rect.fromCenter(
+        center: c.translate(0, _riser * 0.6),
+        width: _treadW - 6,
+        height: _treadH,
+      ),
+      const Radius.circular(9),
+    );
+
+    canvas.drawRRect(
+      top.shift(const Offset(0, 9)),
+      Paint()
+        ..color = _dropShadow
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5),
+    );
+    canvas.drawRRect(
+      riser,
+      Paint()
+        ..color = walked
+            ? Color.lerp(tint, Colors.black, 0.26)!.withValues(alpha: 0.9)
+            : _frostRiser,
+    );
+    canvas.drawRRect(
+      top,
+      Paint()..shader = _topShader(top.outerRect, tint, walked),
+    );
+    canvas.drawRRect(
+      top,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2.2
+        ..color = Colors.white.withValues(alpha: walked ? 0.95 : 0.7),
+    );
+    if (shine > 0) {
+      canvas.drawRRect(
+        top,
+        Paint()..color = Colors.white.withValues(alpha: 0.45 * shine),
+      );
+    }
+    // Every step carries a footprint so the climb reads as a walk — bright and
+    // white on the candy steps already walked, a faint press on the rest.
+    _foot(
+      canvas,
+      c.translate(leftFoot ? -14 : 14, -1),
+      leftFoot,
+      walked
+          ? Colors.white.withValues(alpha: 0.72)
+          : AppColors.muted.withValues(alpha: 0.3),
+    );
+  }
+
+  /// Glossy top face: a lighter lip fading into the world colour (or frosted
+  /// lilac while the world is still locked).
+  Shader _topShader(Rect rect, Color tint, bool walked) {
+    final colors = walked
+        ? [
+            Color.lerp(tint, Colors.white, 0.65)!,
+            Color.lerp(tint, Colors.white, 0.18)!,
+          ]
+        : [_frostTop, _frostBottom];
+    return LinearGradient(
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+      colors: colors,
+    ).createShader(rect);
+  }
+
+  /// A small footprint pressed into a step.
+  void _foot(Canvas canvas, Offset c, bool left, Color color) {
+    canvas.save();
+    canvas.translate(c.dx, c.dy);
+    canvas.rotate(left ? -0.3 : 0.3);
+    final paint = Paint()..color = color;
+    // Sole, then a little arc of toes above it.
+    canvas.drawOval(
+      Rect.fromCenter(center: const Offset(0, 2.4), width: 8, height: 10),
+      paint,
+    );
+    // Mirror the toe row so the big toe sits on the inner edge of each foot.
+    final dir = left ? 1.0 : -1.0;
+    for (var i = 0; i < 4; i++) {
+      canvas.drawCircle(
+        Offset(dir * (-3.2 + i * 2.1), -5.2 - (i == 0 ? 0 : 0.6)),
+        i == 0 ? 1.3 : 1.05,
+        paint,
+      );
+    }
+    canvas.restore();
+  }
+
   @override
-  bool shouldRepaint(_TrailPainter old) => old.points != points;
+  bool shouldRepaint(_StairPainter old) =>
+      !listEquals(old.points, points) ||
+      !listEquals(old.unlocked, unlocked) ||
+      !listEquals(old.tints, tints);
 }
 
 /// Circular progress ring drawn around an island stop.
