@@ -107,11 +107,11 @@ class _WorldMapScreenState extends State<WorldMapScreen> {
                       // The bubbles float inside one big Liquid-Glass panel —
                       // the same "stage" treatment as the in-game board.
                       child: Padding(
-                        padding: EdgeInsets.fromLTRB(14, 4, 14, bottomMargin),
+                        padding: EdgeInsets.fromLTRB(14, 32, 14, bottomMargin),
                         child: LiquidGlass(
                           radius: 28,
-                          blur: 10,
-                          opacity: 0.22,
+                          blur: 4,
+                          opacity: 0.10,
                           child: GridView.builder(
                             controller: _scroll,
                             padding: const EdgeInsets.fromLTRB(
