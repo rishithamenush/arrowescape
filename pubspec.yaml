@@ -39,10 +39,6 @@ dependencies:
   flame_audio: ^2.11.14
   shared_preferences: ^2.3.2
   flutter_animate: ^4.5.2
-  percent_indicator: ^4.2.5
-  flutter_staggered_animations: ^1.1.1
-  gradient_borders: ^1.0.4
-  confetti: ^0.8.0
 
 dev_dependencies:
   flutter_test:
