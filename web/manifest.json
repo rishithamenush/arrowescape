@@ -1,11 +1,11 @@
 {
-    "name": "arrowescape",
-    "short_name": "arrowescape",
+    "name": "Bubble Pop",
+    "short_name": "Bubble Pop",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "Bubble Pop — a colorful bubble puzzle game starring Boba.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

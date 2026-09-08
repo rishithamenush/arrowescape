@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "arrowescape" "\0"
+            VALUE "FileDescription", "Bubble Pop" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "arrowescape" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2026 com.example. All rights reserved." "\0"
             VALUE "OriginalFilename", "arrowescape.exe" "\0"
-            VALUE "ProductName", "arrowescape" "\0"
+            VALUE "ProductName", "Bubble Pop" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END
